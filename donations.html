@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodVault | Donation Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        :root {
+            --primary: #00d1ff;
+            --primary-glow: rgba(0, 209, 255, 0.3);
+            --accent: #7000ff;
+            --accent-glow: rgba(112, 0, 255, 0.3);
+            --bg-dark: #09090b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-glass-hover: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-border-hover: rgba(0, 209, 255, 0.3);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.2);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            display: flex; 
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 100% 0%, rgba(112, 0, 255, 0.1) 0%, transparent 35%),
+                              radial-gradient(circle at 0% 100%, rgba(0, 209, 255, 0.1) 0%, transparent 35%);
+            background-attachment: fixed;
+        }
+
+        /* --- SIDEBAR (Updated to match theme) --- */
+        .sidebar {
+            width: 260px;
+            background: rgba(15, 15, 20, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            height: calc(100vh - 40px);
+            margin: 20px;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand i {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+        }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item:hover {
+            background: var(--card-glass);
+            color: var(--text-main);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--primary-glow);
+            color: var(--primary);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 300px;
+            flex: 1;
+            padding: 2.5rem;
+        }
+
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-flex h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-flex p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* --- STATS GRID (Updated) --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.8rem;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            background: var(--card-glass-hover);
+        }
+
+        .stat-card h3 {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.8rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        /* --- TABS (Updated) --- */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            position: relative;
+            transition: 0.3s;
+            border-radius: 40px;
+        }
+
+        .tab:hover {
+            color: var(--text-main);
+            background: var(--card-glass);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--primary-glow);
+        }
+
+        .tab.active::after {
+            display: none;
+        }
+
+        /* --- DONATION GRID & CARDS (Updated) --- */
+        .donation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .donation-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 1.8rem;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .donation-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            background: var(--card-glass-hover);
+            box-shadow: 0 10px 30px -10px var(--primary-glow);
+        }
+
+        .donation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .donation-card:hover::before {
+            opacity: 1;
+        }
+
+        .donation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .donation-header h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .badge {
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.available { 
+            background: var(--success-glow); 
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .badge.claimed { 
+            background: rgba(245, 158, 11, 0.1); 
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .badge.completed { 
+            background: rgba(0, 209, 255, 0.1); 
+            color: var(--primary);
+            border: 1px solid var(--primary-glow);
+        }
+
+        .donation-details {
+            margin: 1.2rem 0;
+            padding: 1.2rem 0;
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .detail-label {
+            width: 100px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: var(--text-main);
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .donor-info {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            padding: 1.2rem;
+            border-radius: 16px;
+            margin: 1.2rem 0;
+        }
+
+        .donor-info h4 {
+            margin-bottom: 0.8rem;
+            color: var(--primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .donor-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .donor-info i {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        /* --- ACTION BUTTONS (Updated) --- */
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .claim-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .claim-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .claim-btn:hover::before {
+            left: 100%;
+        }
+
+        .claim-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
+        }
+
+        .claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .contact-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--success-glow);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            color: var(--success);
+        }
+
+        .contact-info h4 {
+            margin-bottom: 0.5rem;
+            color: var(--success);
+        }
+
+        /* --- MODAL (Updated) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: var(--card-glass);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 520px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-btn {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .close-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
+        }
+
+        /* --- EMPTY STATE (Updated) --- */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            background: var(--card-glass);
+            border-radius: 32px;
+            border: 1px solid var(--card-border);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- SCROLLBAR (Updated) --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--card-glass);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px;
+        }
+
+        .footer-note {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><i class="fas fa-leaf"></i> FoodVault</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fas fa-columns"></i> <span>Dashboard</span></a>
+            <a href="scan.html" class="nav-item"><i class="fas fa-barcode"></i> <span>AI Scanner</span></a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Insights</span></a>
+            <a href="donations.html" class="nav-item active"><i class="fas fa-heart"></i> <span>Donations</span></a>
+            <a href="fridge.html" class="nav-item"><i class="fas fa-snowflake"></i> <span>Smart Fridge</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header-flex">
+            <div>
+                <h1>Donation Hub</h1>
+                <p>Connect donors with people in need • Reduce food waste</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="background: var(--card-glass); padding: 0.8rem 1.5rem; border-radius: 40px; border: 1px solid var(--card-border);">
+                    <i class="fas fa-hand-holding-heart" style="color: var(--primary);"></i>
+                    <span style="margin-left: 0.5rem; color: var(--text-muted);">Community Impact</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Available Donations</h3>
+                <div class="stat-number" id="availableCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Claimed Items</h3>
+                <div class="stat-number" id="claimedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>People Helped</h3>
+                <div class="stat-number" id="peopleHelped">0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('available')" id="tabAvailable">
+                <i class="fas fa-clock"></i> Available for Claim
+            </div>
+            <div class="tab" onclick="switchTab('claimed')" id="tabClaimed">
+                <i class="fas fa-check-circle"></i> My Claims
+            </div>
+        </div>
+
+        <div id="donationsContainer" class="donation-grid">
+            <!-- Donations will be populated here -->
+        </div>
+
+        <div class="footer-note">
+            <i class="fas fa-leaf"></i> Every donation helps reduce food waste and feed communities
+        </div>
+    </main>
+
+    <!-- Claim Modal -->
+    <div class="modal" id="claimModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Claim Food Donation</h2>
+                <button class="close-btn" onclick="closeClaimModal()">&times;</button>
+            </div>
+            <form onsubmit="submitClaim(event)">
+                <input type="hidden" id="claimDonationId">
+                <div class="form-group">
+                    <label>Your Full Name</label>
+                    <input type="text" id="claimerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="claimerPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="claimerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Pickup Address</label>
+                    <textarea id="claimerAddress" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Preferred Pickup Time</label>
+                    <input type="datetime-local" id="claimerPickupTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Organization (if applicable)</label>
+                    <input type="text" id="claimerOrganization">
+                </div>
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea id="claimerNotes" placeholder="Any special requirements..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-hand-holding-heart"></i> Confirm Claim
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const DONATIONS_KEY = 'foodvault_donations';
+
+        let donations = JSON.parse(localStorage.getItem(DONATIONS_KEY)) || [];
+        let currentTab = 'available';
+
+        function loadDonations() {
+            const container = document.getElementById('donationsContainer');
+            const filteredDonations = currentTab === 'available' 
+                ? donations.filter(d => d.status === 'available')
+                : donations.filter(d => d.status === 'claimed' || d.status === 'completed');
+
+            if (filteredDonations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <h3>No donations ${currentTab === 'available' ? 'available' : 'claimed'} yet</h3>
+                        <p>${currentTab === 'available' ? 'Check back later for new donations' : 'Go to available tab to claim donations'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredDonations.map(donation => `
+                <div class="donation-card">
+                    <div class="donation-header">
+                        <h3>${donation.itemName}</h3>
+                        <span class="badge ${donation.status}">${donation.status}</span>
+                    </div>
+                    
+                    <div class="donation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Category:</span>
+                            <span class="detail-value">${donation.category}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Quantity:</span>
+                            <span class="detail-value">${donation.quantity} ${donation.unit || 'kg'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Expires:</span>
+                            <span class="detail-value">${formatDate(donation.expiryDate)}</span>
+                        </div>
+                    </div>
+
+                    <div class="donor-info">
+                        <h4><i class="fas fa-map-marker-alt"></i> Pickup Location</h4>
+                        <p><i class="fas fa-user"></i> ${donation.donor.name}</p>
+                        <p><i class="fas fa-phone"></i> ${donation.donor.phone}</p>
+                        <p><i class="fas fa-map-pin"></i> ${donation.donor.address}</p>
+                        <p><i class="fas fa-clock"></i> Available: ${formatDateTime(donation.pickupTime)}</p>
+                    </div>
+
+                    ${donation.status === 'available' ? `
+                        <button class="action-btn claim-btn" onclick="openClaimModal('${donation.id}')">
+                            <i class="fas fa-hand-holding-heart"></i> Claim This Food
+                        </button>
+                    ` : donation.claimer ? `
+                        <div class="contact-info">
+                            <h4><i class="fas fa-check-circle"></i> Claimed by:</h4>
+                            <p><strong>${donation.claimer.name}</strong> (${donation.claimer.phone})</p>
+                            <p>Pickup: ${formatDateTime(donation.claimer.pickupTime)}</p>
+                        </div>
+                    ` : ''}
+
+                    ${donation.notes ? `<p style="margin-top: 1rem; color: var(--text-muted);"><i class="fas fa-sticky-note"></i> ${donation.notes}</p>` : ''}
+                </div>
+            `).join('');
+
+            updateStats();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabAvailable').classList.remove('active');
+            document.getElementById('tabClaimed').classList.remove('active');
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            loadDonations();
+        }
+
+        function openClaimModal(donationId) {
+            document.getElementById('claimDonationId').value = donationId;
+            document.getElementById('claimModal').classList.add('active');
+            
+            // Set default pickup time to tomorrow at 12 PM
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(12, 0, 0, 0);
+            document.getElementById('claimerPickupTime').value = tomorrow.toISOString().slice(0, 16);
+        }
+
+        function closeClaimModal() {
+            document.getElementById('claimModal').classList.remove('active');
+            document.getElementById('claimForm').reset();
+        }
+
+        function submitClaim(event) {
+            event.preventDefault();
+            
+            const donationId = document.getElementById('claimDonationId').value;
+            const donationIndex = donations.findIndex(d => d.id === donationId);
+            
+            if (donationIndex === -1) return;
+
+            // Create claimer object
+            const claimer = {
+                name: document.getElementById('claimerName').value,
+                phone: document.getElementById('claimerPhone').value,
+                email: document.getElementById('claimerEmail').value,
+                address: document.getElementById('claimerAddress').value,
+                pickupTime: document.getElementById('claimerPickupTime').value,
+                organization: document.getElementById('claimerOrganization').value,
+                notes: document.getElementById('claimerNotes').value,
+                claimedAt: new Date().toISOString()
+            };
+
+            // Update donation
+            donations[donationIndex].status = 'claimed';
+            donations[donationIndex].claimer = claimer;
+
+            // Save to localStorage
+            localStorage.setItem(DONATIONS_KEY, JSON.stringify(donations));
+
+            closeClaimModal();
+            loadDonations();
+            
+            // Show success message
+            alert('✅ Donation claimed successfully! Check your email for pickup details.');
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatDateTime(dateTimeString) {
+            return new Date(dateTimeString).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function updateStats() {
+            const available = donations.filter(d => d.status === 'available').length;
+            const claimed = donations.filter(d => d.status === 'claimed' || d.status === 'completed').length;
+            const uniquePeople = new Set(donations.filter(d => d.claimer).map(d => d.claimer.phone)).size;
+
+            document.getElementById('availableCount').textContent = available;
+            document.getElementById('claimedCount').textContent = claimed;
+            document.getElementById('peopleHelped').textContent = uniquePeople;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('claimModal');
+            if (event.target === modal) {
+                closeClaimModal();
+            }
+        };
+
+        // Add some sample donations if empty
+        if (donations.length === 0) {
+            const sampleDonations = [
+                {
+                    id: 'DON-1',
+                    itemId: '1',
+                    itemName: 'Fresh Vegetables',
+                    category: 'Vegetables',
+                    quantity: 5,
+                    unit: 'kg',
+                    expiryDate: '2026-03-18',
+                    donor: {
+                        name: 'Sarah Johnson',
+                        phone: '(415) 555-0123',
+                        email: 'sarah@example.com',
+                        address: '123 Main St, San Francisco, CA'
+                    },
+                    pickupTime: '2026-03-15T10:00',
+                    status: 'available',
+                    dateListed: new Date().toISOString(),
+                    notes: 'Fresh organic vegetables from community garden'
+                },
+                {
+                    id: 'DON-2',
+                    itemId: '2',
+                    itemName: 'Dairy Products',
+                    category: 'Dairy',
+                    quantity: 3,
+                    unit: 'liters',
+                    expiryDate: '2026-03-16',
+                    donor: {
+                        name: 'Mike Chen',
+                        phone: '(415) 555-0456',
+                        email: 'mike@example.com',
+                        address: '456 Oak Ave, San Francisco, CA'
+                    },
+                    pickupTime: '2026-03-15T14:30',
+                    status: 'available',
+                    dateListed: new Date().toISOString(),
+                    notes: 'Milk and yogurt, refrigerated'
+                },
+                {
+                    id: 'DON-3',
+                    itemId: '3',
+                    itemName: 'Bakery Items',
+                    category: 'Bakery',
+                    quantity: 8,
+                    unit: 'pcs',
+                    expiryDate: '2026-03-14',
+                    donor: {
+                        name: 'Emma Wilson',
+                        phone: '(415) 555-0789',
+                        email: 'emma@example.com',
+                        address: '789 Pine St, San Francisco, CA'
+                    },
+                    pickupTime: '2026-03-14T09:00',
+                    status: 'claimed',
+                    dateListed: new Date().toISOString(),
+                    claimer: {
+                        name: 'Local Food Bank',
+                        phone: '(415) 555-9999',
+                        pickupTime: '2026-03-14T10:00'
+                    },
+                    notes: 'Assorted bread and pastries'
+                }
+            ];
+            donations = sampleDonations;
+            localStorage.setItem(DONATIONS_KEY, JSON.stringify(donations));
+        }
+
+        // Load donations on page load
+        loadDonations();
+    </script>
+</body>
+</html>

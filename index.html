@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodVault | Elite Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00d1ff;
+            --primary-glow: rgba(0, 209, 255, 0.3);
+            --accent: #7000ff;
+            --accent-glow: rgba(112, 0, 255, 0.3);
+            --bg-dark: #09090b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-glass-hover: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --text-dim: #6b7280;
+            --danger: #ff4e4e;
+            --danger-glow: rgba(255, 78, 78, 0.3);
+            --warning: #ffb92d;
+            --warning-glow: rgba(255, 185, 45, 0.3);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.3);
+            --input-bg: rgba(20, 20, 30, 0.8);
+            --input-border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(112, 0, 255, 0.15) 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(0, 209, 255, 0.1) 0%, transparent 35%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SLEEK FLOATING SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 20, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            height: calc(100vh - 40px);
+            margin: 20px;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand i {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+        }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item:hover {
+            background: var(--card-glass);
+            color: var(--text-main);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--primary-glow);
+            color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* --- MAIN AREA --- */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 3rem;
+        }
+
+        .header { margin-bottom: 3rem; }
+        
+        .header h1 { 
+            font-size: 2.5rem; 
+            font-weight: 800; 
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p { color: var(--text-muted); font-size: 1.1rem; }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-glass);
+            padding: 0.5rem 1.5rem 0.5rem 1rem;
+            border-radius: 100px;
+            border: 1px solid var(--card-border);
+            transition: 0.3s;
+        }
+
+        .user-profile:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .user-avatar::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+        }
+
+        /* --- BENTO STATS --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            padding: 1.5rem;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-glow);
+            background: var(--card-glass-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card span { 
+            font-size: 0.75rem; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            letter-spacing: 1px; 
+        }
+        
+        .stat-card h2 { 
+            font-size: 2.5rem; 
+            font-weight: 800; 
+            margin-top: 10px;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- FLEX LAYOUT --- */
+        .layout-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        /* --- ADVANCED FORM --- */
+        .form-panel {
+            flex: 0 0 360px;
+            background: rgba(15, 15, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            padding: 2rem;
+            border-radius: 28px;
+            position: sticky;
+            top: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-panel h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-panel h3 i {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 14px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300d1ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1a1a25;
+            color: var(--text-main);
+            padding: 12px;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+            height: 24px;
+            background: var(--input-bg);
+            border-left: 1px solid var(--input-border);
+            cursor: pointer;
+            filter: invert(0.8);
+        }
+
+        input[type=date] {
+            color-scheme: dark;
+        }
+
+        input[type=date]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+            opacity: 1;
+            padding: 5px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        input[type=date]::-webkit-calendar-picker-indicator:hover {
+            filter: invert(1);
+            background: var(--primary-glow);
+        }
+
+        input:focus, select:focus, textarea:focus { 
+            outline: none; 
+            border-color: var(--primary); 
+            box-shadow: 0 0 20px var(--primary-glow);
+            background: rgba(30, 30, 40, 0.9);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        /* --- INVENTORY CARDS --- */
+        .pantry-feed {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            padding: 1.8rem;
+            border-radius: 24px;
+            transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: var(--card-glass-hover);
+            border-color: var(--primary);
+            box-shadow: 0 20px 30px -10px var(--primary-glow);
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .badge-fresh, .badge-warning, .badge-danger {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: inline-block;
+        }
+        
+        .badge-fresh { 
+            color: var(--success); 
+            background: var(--success-glow); 
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-warning {
+            color: var(--warning);
+            background: var(--warning-glow);
+            border: 1px solid rgba(255, 185, 45, 0.3);
+        }
+
+        .badge-danger {
+            color: var(--danger);
+            background: var(--danger-glow);
+            border: 1px solid rgba(255, 78, 78, 0.3);
+        }
+
+        .progress-container {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin: 1.5rem 0 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill { 
+            height: 100%; 
+            border-radius: 10px; 
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .btn-donate {
+            background: transparent;
+            border: 1px solid var(--warning);
+            color: var(--warning);
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-donate:hover { 
+            background: var(--warning); 
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px var(--warning-glow);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: rgba(255, 78, 78, 0.1);
+            border: 1px solid var(--danger-glow);
+            color: var(--danger);
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .glass-card:hover .delete-btn { opacity: 1; }
+        
+        .delete-btn:hover { 
+            background: var(--danger); 
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* --- DONATION MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-btn {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .close-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .item-preview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .preview-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .preview-details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .preview-details p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success-glow);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px; 
+        }
+
+        @media (max-width: 1024px) {
+            .layout-container { flex-direction: column; }
+            .form-panel { flex: none; width: 100%; position: static; }
+            .sidebar { width: 80px; padding: 2rem 1rem; }
+            .sidebar span, .brand span { display: none; }
+            .brand { justify-content: center; }
+            .main-content { margin-left: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand"><i class="fas fa-leaf"></i> <span>FoodVault</span></div>
+        <nav class="nav-menu">
+            <a href="index.html" class="nav-item active"><i class="fas fa-columns"></i> <span>Dashboard</span></a>
+            <a href="scan.html" class="nav-item"><i class="fas fa-barcode"></i> <span>AI Scanner</span></a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Insights</span></a>
+            <a href="donations.html" class="nav-item"><i class="fas fa-heart"></i> <span>Donations</span></a>
+            <a href="fridge.html" class="nav-item"><i class="fas fa-snowflake"></i> <span>Smart Fridge</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>Digital Pantry</h1>
+                    <p id="live-date"></p>
+                </div>
+                <div class="user-profile">
+                    <span style="font-weight: 600;">FoodSaver_001</span>
+                    <div class="user-avatar"></div>
+                </div>
+            </div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card"><span>Total Items</span><h2 id="s-total">0</h2></div>
+            <div class="stat-card"><span>Optimal</span><h2 id="s-fresh">0</h2></div>
+            <div class="stat-card"><span>Urgent</span><h2 id="s-warning">0</h2></div>
+            <div class="stat-card"><span>Critical</span><h2 id="s-danger">0</h2></div>
+        </section>
+
+        <div class="layout-container">
+            <div class="form-panel">
+                <h3><i class="fas fa-plus-circle"></i> Add New Item</h3>
+                <form id="food-form">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="p-name" placeholder="e.g. Organic Avocados" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="p-cat">
+                            <option value="Vegetables">🥦 Vegetables</option>
+                            <option value="Fruits">🍎 Fruits</option>
+                            <option value="Dairy">🥛 Dairy</option>
+                            <option value="Protein">🥩 Protein</option>
+                            <option value="Bakery">🍞 Bakery</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label>Quantity</label>
+                            <input type="number" id="p-qty" placeholder="1" min="0.1" step="0.1" value="1" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Expiry</label>
+                            <input type="date" id="p-exp" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Add to Vault</button>
+                </form>
+            </div>
+
+            <div class="pantry-feed" id="pantry-grid"></div>
+        </div>
+    </main>
+
+    <!-- Donation Modal with Contact Form -->
+    <div class="modal" id="donationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-hand-holding-heart"></i> Donate Food</h2>
+                <button class="close-btn" onclick="closeDonationModal()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div id="donationPreview" class="item-preview"></div>
+
+            <form id="donationForm" onsubmit="submitDonation(event)">
+                <input type="hidden" id="donateItemId">
+                
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">Your Contact Details</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="donorName" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone *</label>
+                        <input type="tel" id="donorPhone" placeholder="(555) 123-4567" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="donorEmail" placeholder="john@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Pickup Address *</label>
+                    <textarea id="donorAddress" placeholder="Street, City, ZIP Code" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Available Date *</label>
+                        <input type="date" id="pickupDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Available Time *</label>
+                        <input type="time" id="pickupTime" value="12:00" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea id="donorNotes" placeholder="Any special instructions for pickup..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn-primary" style="margin-top: 0;">
+                        <i class="fas fa-check-circle"></i> Confirm Donation
+                    </button>
+                    <button type="button" class="btn-primary" style="background: transparent; border: 1px solid var(--danger); color: var(--danger); margin-top: 0;" onclick="closeDonationModal()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const DB_KEY = 'foodvault_pro_v5';
+        const DONATIONS_KEY = 'foodvault_donations';
+        const ANALYTICS_KEY = 'foodvault_analytics';
+
+        // Data stores
+        let inventory = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+        let donations = JSON.parse(localStorage.getItem(DONATIONS_KEY)) || [];
+        let analytics = JSON.parse(localStorage.getItem(ANALYTICS_KEY)) || {
+            totalCO2Saved: 0,
+            totalWaterSaved: 0,
+            totalMeals: 0,
+            totalDonations: 0,
+            totalClaims: 0
+        };
+
+        // CO2 and Water conversion factors
+        const CO2_FACTORS = {
+            'Vegetables': 0.5,
+            'Fruits': 0.4,
+            'Dairy': 2.0,
+            'Protein': 5.0,
+            'Bakery': 1.2,
+            'default': 1.0
+        };
+
+        const WATER_FACTORS = {
+            'Vegetables': 322,
+            'Fruits': 962,
+            'Dairy': 1020,
+            'Protein': 4300,
+            'Bakery': 1600,
+            'default': 600
+        };
+
+        const icons = { 
+            'Vegetables': '🥦', 
+            'Fruits': '🍎', 
+            'Dairy': '🥛', 
+            'Protein': '🥩', 
+            'Bakery': '🍞' 
+        };
+
+        // Update live date
+        document.getElementById('live-date').innerText = new Date().toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            month: 'long', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        // Set default dates
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('p-exp').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('pickupDate').value = tomorrow.toISOString().split('T')[0];
+        document.getElementById('pickupTime').value = '12:00';
+
+        function render() {
+            const grid = document.getElementById('pantry-grid');
+            grid.innerHTML = '';
+            let stats = { total: 0, fresh: 0, warning: 0, danger: 0 };
+
+            inventory.forEach(item => {
+                // Skip donated items
+                if (item.donated) return;
+                
+                stats.total++;
+                const health = getHealth(item.exp);
+                stats[health.key]++;
+
+                let badgeClass = 'badge-fresh';
+                if (health.key === 'warning') badgeClass = 'badge-warning';
+                if (health.key === 'danger') badgeClass = 'badge-danger';
+
+                const card = document.createElement('div');
+                card.className = 'glass-card';
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="removeItem(${item.id})"><i class="fas fa-times"></i></button>
+                    <div class="icon-box">${icons[item.cat] || '📦'}</div>
+                    <span class="${badgeClass}">${health.label}</span>
+                    <h3 style="margin-top: 15px; font-weight: 700; font-size: 1.2rem;">${item.name}</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">${item.qty} • ${item.cat}</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: ${health.pct}%; background: ${health.color};"></div>
+                    </div>
+                    
+                    <p style="font-size: 0.8rem; font-weight: 600; color: ${health.color}; display: flex; align-items: center; gap: 5px;">
+                        <i class="far fa-calendar-alt"></i> Expires ${formatDate(item.exp)}
+                    </p>
+                    ${health.key === 'warning' ? `
+                        <button class="btn-donate" onclick="openDonationModal(${item.id})">
+                            <i class="fas fa-hand-holding-heart"></i> Donate to Hub
+                        </button>
+                    ` : ''}
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('s-total').innerText = stats.total;
+            document.getElementById('s-fresh').innerText = stats.fresh;
+            document.getElementById('s-warning').innerText = stats.warning;
+            document.getElementById('s-danger').innerText = stats.danger;
+            
+            localStorage.setItem(DB_KEY, JSON.stringify(inventory));
+        }
+
+        function getHealth(dateString) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expDate = new Date(dateString);
+            const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return { key: 'danger', color: '#ff4e4e', pct: 100, label: 'EXPIRED' };
+            if (diffDays <= 3) return { key: 'warning', color: '#ffb92d', pct: 35, label: 'URGENT' };
+            if (diffDays <= 7) return { key: 'fresh', color: '#00d1ff', pct: 70, label: 'WATCH' };
+            return { key: 'fresh', color: '#10b981', pct: 100, label: 'OPTIMAL' };
+        }
+
+        function formatDate(d) { 
+            return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); 
+        }
+
+        // Add new item
+        document.getElementById('food-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newItem = {
+                id: Date.now(),
+                name: document.getElementById('p-name').value,
+                cat: document.getElementById('p-cat').value,
+                qty: document.getElementById('p-qty').value,
+                exp: document.getElementById('p-exp').value,
+                added: new Date().toISOString(),
+                donated: false
+            };
+            
+            inventory.push(newItem);
+            render();
+            e.target.reset();
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('p-exp').value = tomorrow.toISOString().split('T')[0];
+            
+            showNotification('Item added successfully!', 'success');
+        });
+
+        // Remove item
+        window.removeItem = (id) => { 
+            if (confirm('Remove this item from inventory?')) {
+                inventory = inventory.filter(i => i.id !== id); 
+                render();
+                showNotification('Item removed', 'info');
+            }
+        };
+
+        // Donation Modal Functions
+        window.openDonationModal = (itemId) => {
+            const item = inventory.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('donateItemId').value = itemId;
+            
+            const preview = document.getElementById('donationPreview');
+            preview.innerHTML = `
+                <div class="preview-icon">${icons[item.cat] || '📦'}</div>
+                <div class="preview-details">
+                    <h3>${item.name}</h3>
+                    <p>${item.qty} • ${item.cat} • Expires ${formatDate(item.exp)}</p>
+                </div>
+            `;
+            
+            document.getElementById('donationModal').classList.add('active');
+        };
+
+        window.closeDonationModal = () => {
+            document.getElementById('donationModal').classList.remove('active');
+            document.getElementById('donationForm').reset();
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('pickupDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('pickupTime').value = '12:00';
+        };
+
+        // Submit Donation
+        window.submitDonation = (event) => {
+            event.preventDefault();
+            
+            const itemId = parseInt(document.getElementById('donateItemId').value);
+            const item = inventory.find(i => i.id === itemId);
+            
+            if (!item) return;
+
+            // Create donation record
+            const donation = {
+                id: 'DON-' + Date.now(),
+                itemId: item.id,
+                itemName: item.name,
+                category: item.cat,
+                quantity: parseFloat(item.qty) || 1,
+                unit: 'units',
+                expiryDate: item.exp,
+                donor: {
+                    name: document.getElementById('donorName').value,
+                    phone: document.getElementById('donorPhone').value,
+                    email: document.getElementById('donorEmail').value,
+                    address: document.getElementById('donorAddress').value
+                },
+                pickupTime: `${document.getElementById('pickupDate').value}T${document.getElementById('pickupTime').value}`,
+                notes: document.getElementById('donorNotes').value,
+                status: 'available',
+                dateListed: new Date().toISOString(),
+                claimer: null
+            };
+
+            // Mark item as donated
+            item.donated = true;
+            item.donationId = donation.id;
+
+            // Save to donations
+            donations.push(donation);
+            localStorage.setItem(DONATIONS_KEY, JSON.stringify(donations));
+            localStorage.setItem(DB_KEY, JSON.stringify(inventory));
+
+            // Update analytics (preliminary - will update fully when claimed)
+            updateAnalytics(donation, 'listed');
+
+            closeDonationModal();
+            render();
+            
+            showNotification('✅ Item listed for donation! View in Donation Hub.', 'success');
+        };
+
+        // Update Analytics
+        function updateAnalytics(donation, action) {
+            const quantity = donation.quantity || 1;
+            const category = donation.category || 'default';
+            const co2Factor = CO2_FACTORS[category] || CO2_FACTORS.default;
+            const waterFactor = WATER_FACTORS[category] || WATER_FACTORS.default;
+            
+            const co2Saved = quantity * co2Factor;
+            const waterSaved = quantity * waterFactor;
+            const meals = quantity * 2; // Assuming 0.5kg per meal
+
+            if (action === 'claimed') {
+                analytics.totalCO2Saved += co2Saved;
+                analytics.totalWaterSaved += waterSaved;
+                analytics.totalMeals += meals;
+                analytics.totalClaims++;
+            }
+            
+            analytics.totalDonations = donations.length;
+            
+            localStorage.setItem(ANALYTICS_KEY, JSON.stringify(analytics));
+            
+            // Trigger update in analytics page if open
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: ANALYTICS_KEY,
+                newValue: JSON.stringify(analytics)
+            }));
+        }
+
+        // Check for claimed donations (called from donations.html)
+        window.checkClaimedDonations = function() {
+            const updatedDonations = JSON.parse(localStorage.getItem(DONATIONS_KEY)) || [];
+            
+            updatedDonations.forEach(donation => {
+                const oldDonation = donations.find(d => d.id === donation.id);
+                
+                // If newly claimed
+                if (donation.status === 'claimed' && (!oldDonation || oldDonation.status !== 'claimed')) {
+                    updateAnalytics(donation, 'claimed');
+                    
+                    // Show notification
+                    showNotification(`🎉 Your ${donation.itemName} donation was claimed!`, 'success');
+                }
+            });
+            
+            donations = updatedDonations;
+        };
+
+        // Check for updates every 5 seconds
+        setInterval(checkClaimedDonations, 5000);
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+                ${message}
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Listen for storage events (updates from donations page)
+        window.addEventListener('storage', (e) => {
+            if (e.key === DONATIONS_KEY) {
+                donations = JSON.parse(e.newValue) || [];
+                checkClaimedDonations();
+            }
+            if (e.key === DB_KEY) {
+                inventory = JSON.parse(e.newValue) || [];
+                render();
+            }
+        });
+
+        // Load sample data if empty
+        if (inventory.length === 0) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            const nextMonth = new Date(today);
+            nextMonth.setDate(nextMonth.getDate() + 14);
+            
+            inventory = [
+                { 
+                    id: 1, 
+                    name: 'Greek Yogurt', 
+                    cat: 'Dairy', 
+                    qty: 2, 
+                    exp: tomorrow.toISOString().split('T')[0],
+                    donated: false
+                },
+                { 
+                    id: 2, 
+                    name: 'Baby Spinach', 
+                    cat: 'Vegetables', 
+                    qty: 1, 
+                    exp: nextWeek.toISOString().split('T')[0],
+                    donated: false
+                },
+                { 
+                    id: 3, 
+                    name: 'Chicken Breast', 
+                    cat: 'Protein', 
+                    qty: 1, 
+                    exp: new Date(today.setDate(today.getDate() + 3)).toISOString().split('T')[0],
+                    donated: false
+                },
+                { 
+                    id: 4, 
+                    name: 'Sourdough Bread', 
+                    cat: 'Bakery', 
+                    qty: 1, 
+                    exp: nextMonth.toISOString().split('T')[0],
+                    donated: false
+                }
+            ];
+            localStorage.setItem(DB_KEY, JSON.stringify(inventory));
+        }
+
+        // Initial render
+        render();
+        checkClaimedDonations();
+    </script>
+</body>
+</html>

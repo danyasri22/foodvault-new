@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodVault | Smart Fridge IoT</title>
+    <!-- Google Fonts & Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        :root {
+            --primary: #00d1ff;
+            --primary-glow: rgba(0, 209, 255, 0.3);
+            --accent: #7000ff;
+            --bg-dark: #09090b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --danger: #ff4e4e;
+            --warning: #ffb92d;
+            --success: #10b981;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SLEEK FLOATING SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 20, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            height: calc(100vh - 40px);
+            margin: 20px;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 10px; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item:hover {
+            background: var(--card-glass);
+            color: var(--text-main);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--primary-glow);
+            color: var(--primary);
+        }
+        /* MAIN CONTENT - adjusted margin */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+        }
+
+        /* header style */
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-flex h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .header-flex p {
+            color: #e8edf4;
+        }
+
+        /* IoT summary cards (consistent with analytics) */
+        .iot-summary {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .iot-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 1.2rem 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid #e9eef2;
+            transition: 0.2s;
+        }
+
+        .iot-card .label {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #e6eaef;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .iot-card .value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #e4e6ea;
+            line-height: 1.2;
+        }
+
+        .iot-card .sub {
+            font-size: 0.95rem;
+            color: #64a3ef;
+            margin-top: 0.3rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #e2f0e4;
+            color: #0e6b3e;
+        }
+
+        .warning { background: #fee9e7; color: #b33a2c; }
+        .caution { background: #fffbeb; color: #b6560c; }
+
+        /* main row - sensor panel and alerts */
+        .row-sensors {
+            display: grid;
+            grid-template-columns: 2.5fr 1.2fr;
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .sensor-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 1.6rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid #e2edf2;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #17344b;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #e6edf4;
+            padding-bottom: 0.8rem;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem 1.2rem;
+        }
+
+        .sensor-item {
+            background: #f9fcff;
+            border-radius: 22px;
+            padding: 1.2rem 1rem;
+            border: 1px solid #e2edf2;
+        }
+
+        .sensor-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #2c4d70;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+        }
+
+        .sensor-header i {
+            font-size: 1.2rem;
+            width: 1.8rem;
+            color: #3d8f7b;
+        }
+
+        .reading {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #0d2f44;
+            margin-left: 2.3rem;
+            line-height: 1.3;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .unit {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: #73879c;
+        }
+
+        .alert-text {
+            font-size: 0.8rem;
+            margin-left: 2.3rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #b65b2e;
+        }
+
+        .door-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .door-status {
+            background: #eaf3fa;
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .door-closed { background: #e2f0e4; color: #16673e; }
+        .door-open { background: #ffede3; color: #b13e1c; }
+
+        /* alerts panel */
+        .alerts-panel {
+            background: white;
+            border-radius: 28px;
+            padding: 1.6rem 1.2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .alert-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .alert-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.9rem 0.6rem;
+            border-bottom: 1px solid #edf2f6;
+            font-size: 0.9rem;
+        }
+
+        .alert-list i.fa-circle-exclamation { color: #d3544c; width: 1.6rem; }
+        .alert-list i.fa-circle-info { color: #2d7f9e; width: 1.6rem; }
+        .alert-list i.fa-clock { color: #e68a3e; width: 1.6rem; }
+        .alert-time {
+            color: #7d8b9f;
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
+
+        /* risk meter */
+        .risk-meter {
+            background: #f0f5fa;
+            border-radius: 60px;
+            height: 1.8rem;
+            width: 100%;
+            margin: 1rem 0 1.8rem;
+            position: relative;
+        }
+
+        .risk-fill {
+            height: 1.8rem;
+            border-radius: 60px;
+            background: linear-gradient(90deg, #79c9a4, #f7b85b, #e76b5e);
+            width: 42%;
+            transition: 0.3s;
+        }
+
+        .risk-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #38526b;
+        }
+
+        .chart-container {
+            margin: 1.5rem 0 0.5rem;
+            height: 130px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0 5px;
+            flex-wrap: wrap;
+        }
+
+        .sim-btn {
+            background: white;
+            border: 1px solid #cbdae9;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1a415e;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .sim-btn:hover {
+            background: #e2f0ec;
+            border-color: #6fa99b;
+        }
+
+        .footer-note {
+            margin-top: 2rem;
+            color: #7588a3;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px dashed #cbdae1;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR - exactly matching other pages -->
+    <aside class="sidebar">
+        <div class="brand"><i class="fas fa-leaf"></i> FoodVault</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item active"><i class="fas fa-columns"></i> <span>Dashboard</span></a>
+            <a href="scan.html" class="nav-item"><i class="fas fa-barcode"></i> <span>AI Scanner</span></a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Insights</span></a>
+            <a href="donations.html" class="nav-item"><i class="fas fa-heart"></i> <span>Donations</span></a>
+            <a href="fridge.html" class="nav-item"><i class="fas fa-cog"></i> <span>Settings</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- header with title and export button (like analytics) -->
+        <div class="header-flex">
+            <div>
+                <h1><i class="fas fa-thermometer-half" style="color: #10b981;"></i> Smart Fridge IoT</h1>
+                <p>Simulated sensors · real‑time monitoring · spoilage prevention</p>
+            </div>
+            <button onclick="window.print()" style="padding: 10px 20px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; cursor: pointer; font-weight: 600;">
+                <i class="fa-regular fa-file-pdf"></i> Export snapshot
+            </button>
+        </div>
+
+        <!-- IoT summary cards (compact, matching analytics layout) -->
+        <div class="iot-summary">
+            <div class="iot-card">
+                <div class="label"><i class="fas fa-thermometer-half" style="color:#2d7f9e;"></i> fridge temp</div>
+                <div class="value" id="summaryTemp">4.2°C</div>
+                <div class="sub"><span class="status-badge" id="summaryTempBadge">optimal</span></div>
+            </div>
+            <div class="iot-card">
+                <div class="label"><i class="fas fa-droplet" style="color:#2d7f9e;"></i> humidity</div>
+                <div class="value" id="summaryHumi">48%</div>
+                <div class="sub">normal range</div>
+            </div>
+            <div class="iot-card">
+                <div class="label"><i class="fas fa-wind" style="color:#2d7f9e;"></i> gas (spoilage)</div>
+                <div class="value" id="summaryGas">12 ppm</div>
+                <div class="sub" id="summaryGasSub">clean air</div>
+            </div>
+            <div class="iot-card">
+                <div class="label"><i class="fas fa-door-open"></i> door</div>
+                <div class="value" id="summaryDoor">closed</div>
+                <div class="sub" id="summaryDoorSub">✓ closed</div>
+            </div>
+            <div class="iot-card">
+                <div class="label"><i class="fas fa-boxes"></i> weight (est.)</div>
+                <div class="value" id="summaryWeight">6.8 kg</div>
+                <div class="sub"><span id="summaryEst">~17 items</span></div>
+            </div>
+        </div>
+
+        <!-- main row: left sensors + right alerts (original simulation but with new UI) -->
+        <div class="row-sensors">
+            <!-- left side: all sensor blocks -->
+            <div class="sensor-panel">
+                <div class="panel-title"><i class="fas fa-microchip"></i> live sensor simulation</div>
+                <div class="sensor-grid">
+                    <!-- temperature -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-thermometer-half"></i> temperature</div>
+                        <div class="reading"><span id="tempValue">4.2</span><span class="unit">°C</span></div>
+                        <div class="alert-text" id="tempAlert"><i class="fas fa-circle-check" style="color:#2e8b6c;"></i> optimal range</div>
+                    </div>
+                    <!-- humidity -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-droplet"></i> humidity</div>
+                        <div class="reading"><span id="humiValue">48</span><span class="unit">%</span></div>
+                        <div class="alert-text" id="humiAlert"><i class="fas fa-circle-check" style="color:#2e8b6c;"></i> normal</div>
+                    </div>
+                    <!-- shelf weight -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-weight-scale"></i> shelf weight</div>
+                        <div class="reading"><span id="weightKilos">6.8</span><span class="unit">kg</span></div>
+                        <div class="alert-text" id="weightAlert">🍎 ~<span id="estItems">17</span> items estimated</div>
+                    </div>
+                    <!-- door sensor -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-door-open"></i> fridge door</div>
+                        <div class="door-row">
+                            <span class="reading" style="font-size:1.3rem; margin-left:0;" id="doorStatusText">closed</span>
+                            <span class="door-status door-closed" id="doorBadge">closed</span>
+                        </div>
+                        <div class="alert-text" id="doorAlert" style="margin-left:0;">🔒 closed</div>
+                    </div>
+                    <!-- gas sensor -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-wind"></i> gas (spoilage)</div>
+                        <div class="reading"><span id="gasLevel">12</span><span class="unit">ppm</span></div>
+                        <div class="alert-text" id="gasAlert"><i class="fas fa-circle-check" style="color:#2e8b6c;"></i> clean air</div>
+                    </div>
+                    <!-- spoilage risk mini -->
+                    <div class="sensor-item">
+                        <div class="sensor-header"><i class="fas fa-clipboard-list"></i> spoilage risk</div>
+                        <div class="reading" style="font-size:1.3rem;" id="riskIndicator">moderate</div>
+                        <div class="alert-text" id="riskCause">based on sensors & expiry</div>
+                    </div>
+                </div>
+
+                <!-- chart for temp/hum trends (consistent style) -->
+                <div style="margin-top:1.5rem;">
+                    <div style="display:flex; gap:2rem; align-items:center;">
+                        <span><i class="fas fa-chart-line"></i> last 30 sec (temp / humidity)</span>
+                        <span class="status-badge">simulated</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="sensorTrendChart" width="400" height="100"></canvas>
+                    </div>
+                </div>
+
+                <!-- simulation buttons (playground) -->
+                <div class="btn-group">
+                    <button class="sim-btn" id="simNormal"><i class="fa-regular fa-snowflake"></i> optimal</button>
+                    <button class="sim-btn" id="simWarm"><i class="fa-solid fa-temperature-high"></i> warm + door open</button>
+                    <button class="sim-btn" id="simSpoil"><i class="fa-solid fa-skull"></i> spoilage gas</button>
+                    <button class="sim-btn" id="simWeightDown"><i class="fa-solid fa-apple-whole"></i> remove food</button>
+                </div>
+            </div>
+
+            <!-- right side: smart alerts panel + donation note (UI enhanced) -->
+            <div class="alerts-panel">
+                <div class="panel-title"><i class="fas fa-bell"></i> smart alerts</div>
+                <ul class="alert-list" id="alertList">
+                    <li><i class="fa-regular fa-circle-check" style="color:#34856e;"></i> system active <span class="alert-time">now</span></li>
+                    <li><i class="fa-regular fa-clock"></i> 2 items expiring tomorrow (milk, yogurt)<span class="alert-time">10h</span></li>
+                </ul>
+                <div style="margin: 1.5rem 0 0.5rem;">
+                    <div class="panel-title" style="border-bottom:none; margin-bottom:0.6rem;"><i class="fas fa-hand-holding-heart"></i> donation hub</div>
+                    <p style="font-size:0.9rem; background:#edf7f2; border-radius:20px; padding:0.8rem;">🍞 3 items soon expiring — consider donating to FoodVault partners.</p>
+                </div>
+                <!-- door timer warning (hidden by default) -->
+                <div id="doorTimerWarning" style="background:#fff1e0; border-radius:16px; padding:0.8rem; font-size:0.85rem; display:none;">
+                    <i class="fas fa-door-open" style="color:#b65b2e;"></i> ⚠️ door open for 3+ min
+                </div>
+            </div>
+        </div>
+
+        <!-- footer note with integration hint -->
+        <div class="footer-note">
+            <span><i class="fa-regular fa-lightbulb"></i> IoT simulation combines sensor data + expiry for risk estimation</span>
+            <span><i class="fa-regular fa-bell"></i> alerts update every 5 seconds</span>
+        </div>
+    </main>
+
+    <script>
+        (function() {
+            // ---------- simulated state (same as before) ----------
+            let temperature = 4.2;
+            let humidity = 48;
+            let shelfWeight = 6.8;
+            let doorOpen = false;
+            let doorOpenSeconds = 0;
+            let gasPpm = 12;
+            let inventoryItems = 24;
+            let expiringSoon = 3;
+
+            // chart history
+            const maxHistory = 12;
+            const tempHistory = [4.2, 4.3, 4.1, 4.4, 4.0, 4.2, 4.5, 4.3, 4.0, 4.2, 4.4, 4.1];
+            const humHistory = [48, 49, 47, 48, 50, 48, 47, 46, 49, 48, 48, 47];
+
+            // Chart instance
+            const ctx = document.getElementById('sensorTrendChart').getContext('2d');
+            const trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: maxHistory }, (_, i) => `${i*5}s`),
+                    datasets: [
+                        { label: 'temp °C', data: tempHistory.slice(-maxHistory), borderColor: '#d9734c', backgroundColor: 'rgba(217,115,76,0.05)', tension: 0.2, pointRadius: 2 },
+                        { label: 'humidity %', data: humHistory.slice(-maxHistory), borderColor: '#3d8fbb', backgroundColor: 'rgba(61,143,187,0.05)', tension: 0.2, pointRadius: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: false, min: 0, max: 80, grid: { color: '#e0e9f0' } } }
+                }
+            });
+
+            // Helper: update all UI (including summary cards)
+            function refreshUI() {
+                // ----- main sensor displays -----
+                document.getElementById('tempValue').innerText = temperature.toFixed(1);
+                let tempAlert = document.getElementById('tempAlert');
+                if (temperature > 6.0) {
+                    tempAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#c9423a;"></i> HIGH! spoilage risk ↑';
+                } else if (temperature > 4.5) {
+                    tempAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#e68a3e;"></i> above optimal';
+                } else {
+                    tempAlert.innerHTML = '<i class="fas fa-circle-check" style="color:#2e8b6c;"></i> optimal range';
+                }
+
+                let humAlert = document.getElementById('humiAlert');
+                if (humidity < 30) humAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#c9423a;"></i> too low (dry)';
+                else if (humidity > 65) humAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#c9423a;"></i> too high (mold risk)';
+                else humAlert.innerHTML = '<i class="fas fa-circle-check" style="color:#2e8b6c;"></i> normal';
+                document.getElementById('humiValue').innerText = humidity;
+
+                let estItems = Math.max(1, Math.round(shelfWeight / 0.4));
+                document.getElementById('weightKilos').innerText = shelfWeight.toFixed(1);
+                document.getElementById('estItems').innerText = estItems;
+                inventoryItems = estItems + 7;
+                if (shelfWeight < 2.0) document.getElementById('weightAlert').innerHTML = '⚠️ very low, restock soon';
+                else document.getElementById('weightAlert').innerHTML = '🍎 ~'+estItems+' items estimated';
+
+                // door
+                let doorSpan = document.getElementById('doorStatusText');
+                let doorBadge = document.getElementById('doorBadge');
+                let doorAlertSpan = document.getElementById('doorAlert');
+                if (doorOpen) {
+                    doorSpan.innerText = 'open';
+                    doorBadge.innerText = 'open'; doorBadge.className = 'door-status door-open';
+                    doorAlertSpan.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#c93e2b;"></i> door open';
+                    if (doorOpenSeconds > 10) {
+                        document.getElementById('doorTimerWarning').style.display = 'block';
+                    } else {
+                        document.getElementById('doorTimerWarning').style.display = 'none';
+                    }
+                } else {
+                    doorSpan.innerText = 'closed';
+                    doorBadge.innerText = 'closed'; doorBadge.className = 'door-status door-closed';
+                    doorAlertSpan.innerHTML = '🔒 closed';
+                    document.getElementById('doorTimerWarning').style.display = 'none';
+                }
+
+                document.getElementById('gasLevel').innerText = gasPpm;
+                let gasAlert = document.getElementById('gasAlert');
+                if (gasPpm > 25) gasAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#c93e2b;"></i> SPOILAGE GAS DETECTED!';
+                else if (gasPpm > 15) gasAlert.innerHTML = '<i class="fas fa-circle-exclamation" style="color:#e68a3e;"></i> trace spoilage gases';
+                else gasAlert.innerHTML = '<i class="fas fa-circle-check" style="color:#2e8b6c;"></i> clean air';
+
+                // spoilage risk indicator
+                let riskScore = 0;
+                if (temperature > 5.5) riskScore += 35;
+                else if (temperature > 4.5) riskScore += 15;
+                if (humidity > 62 || humidity < 28) riskScore += 20;
+                if (gasPpm > 20) riskScore += 40;
+                else if (gasPpm > 12) riskScore += 10;
+                if (expiringSoon > 5) riskScore += 20;
+                else if (expiringSoon > 2) riskScore += 10;
+                riskScore = Math.min(98, riskScore);
+                let riskText = riskScore < 25 ? 'low' : (riskScore < 55 ? 'moderate' : 'high');
+                document.getElementById('riskIndicator').innerText = riskText;
+                document.querySelector('.risk-fill').style.width = riskScore+'%';
+
+                // summary cards (top)
+                document.getElementById('summaryTemp').innerText = temperature.toFixed(1)+'°C';
+                let summTempBadge = document.getElementById('summaryTempBadge');
+                if (temperature > 6.0) summTempBadge.innerText = 'HIGH'; else if (temperature > 4.5) summTempBadge.innerText = 'mild'; else summTempBadge.innerText = 'optimal';
+                summTempBadge.className = temperature > 6.0 ? 'status-badge warning' : (temperature > 4.5 ? 'status-badge caution' : 'status-badge');
+
+                document.getElementById('summaryHumi').innerText = humidity+'%';
+                document.getElementById('summaryGas').innerText = gasPpm+' ppm';
+                document.getElementById('summaryGasSub').innerText = gasPpm > 20 ? 'spoilage gas!' : 'clean air';
+                document.getElementById('summaryDoor').innerText = doorOpen ? 'open' : 'closed';
+                document.getElementById('summaryDoorSub').innerHTML = doorOpen ? '⚠️ open' : '✓ closed';
+                document.getElementById('summaryWeight').innerText = shelfWeight.toFixed(1)+' kg';
+                document.getElementById('summaryEst').innerText = '~'+estItems+' items';
+
+                // Build alerts list
+                let alertsHtml = '';
+                if (temperature > 6.0) alertsHtml += '<li><i class="fa-solid fa-circle-exclamation" style="color:#d3544c;"></i> temperature too high <span class="alert-time">now</span></li>';
+                else if (temperature > 4.8) alertsHtml += '<li><i class="fa-regular fa-clock"></i> temp above optimal <span class="alert-time">now</span></li>';
+                if (doorOpen && doorOpenSeconds > 8) alertsHtml += '<li><i class="fa-solid fa-door-open"></i> door left open ('+doorOpenSeconds+'s)<span class="alert-time">now</span></li>';
+                if (gasPpm > 20) alertsHtml += '<li><i class="fa-solid fa-skull"></i> spoilage risk: gas detected<span class="alert-time">now</span></li>';
+                if (expiringSoon > 0) alertsHtml += '<li><i class="fa-regular fa-clock"></i> '+expiringSoon+' items nearing expiration <span class="alert-time">soon</span></li>';
+                if (humidity > 62) alertsHtml += '<li><i class="fa-solid fa-droplet"></i> humidity too high <span class="alert-time">now</span></li>';
+                if (humidity < 30) alertsHtml += '<li><i class="fa-solid fa-droplet"></i> humidity too low <span class="alert-time">now</span></li>';
+                if (alertsHtml === '') alertsHtml = '<li><i class="fa-regular fa-circle-check" style="color:#34856e;"></i> all sensors OK <span class="alert-time">steady</span></li>';
+                document.getElementById('alertList').innerHTML = alertsHtml;
+            }
+
+            // periodic update
+            function updateSensorsPeriodic() {
+                temperature += (Math.random() * 0.6 - 0.3);
+                temperature = Math.min(8.5, Math.max(1.5, +temperature.toFixed(1)));
+                humidity += (Math.random() * 4 - 2);
+                humidity = Math.min(75, Math.max(20, Math.round(humidity)));
+                gasPpm += (Math.random() * 3 - 1.2);
+                gasPpm = Math.min(40, Math.max(5, Math.round(gasPpm)));
+
+                if (doorOpen) doorOpenSeconds += 5;
+                else doorOpenSeconds = 0;
+
+                shelfWeight = Math.max(1.2, shelfWeight - (Math.random() * 0.1));
+                expiringSoon = Math.min(8, Math.max(1, expiringSoon + (Math.random() > 0.7 ? 1 : -1)));
+
+                tempHistory.push(temperature);
+                humHistory.push(humidity);
+                if (tempHistory.length > maxHistory) tempHistory.shift();
+                if (humHistory.length > maxHistory) humHistory.shift();
+                trendChart.data.datasets[0].data = tempHistory.slice();
+                trendChart.data.datasets[1].data = humHistory.slice();
+                trendChart.update();
+
+                refreshUI();
+            }
+
+            // manual sim
+            document.getElementById('simNormal').addEventListener('click', ()=>{
+                temperature = 4.0; humidity = 48; gasPpm = 8; doorOpen = false; shelfWeight = 7.2; expiringSoon = 2;
+                refreshUI(); updateChartsFromTemp();
+            });
+            document.getElementById('simWarm').addEventListener('click', ()=>{
+                temperature = 6.8; humidity = 58; gasPpm = 14; doorOpen = true; doorOpenSeconds = 12; shelfWeight = 6.0; expiringSoon = 4;
+                refreshUI(); updateChartsFromTemp();
+            });
+            document.getElementById('simSpoil').addEventListener('click', ()=>{
+                temperature = 7.2; humidity = 68; gasPpm = 32; doorOpen = false; shelfWeight = 5.2; expiringSoon = 6;
+                refreshUI(); updateChartsFromTemp();
+            });
+            document.getElementById('simWeightDown').addEventListener('click', ()=>{
+                shelfWeight = Math.max(1.0, shelfWeight - 1.0);
+                refreshUI(); updateChartsFromTemp();
+            });
+
+            function updateChartsFromTemp() {
+                tempHistory.push(temperature);
+                humHistory.push(humidity);
+                if (tempHistory.length > maxHistory) tempHistory.shift();
+                if (humHistory.length > maxHistory) humHistory.shift();
+                trendChart.data.datasets[0].data = tempHistory.slice();
+                trendChart.data.datasets[1].data = humHistory.slice();
+                trendChart.update();
+            }
+
+            setInterval(updateSensorsPeriodic, 5000);
+            setInterval(() => {
+                if (doorOpen) doorOpenSeconds += 1;
+                refreshUI();
+            }, 1000);
+
+            refreshUI();
+        })();
+    </script>
+</body>
+</html>

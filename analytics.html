@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodVault | Impact Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root {
+            --primary: #00d1ff;
+            --accent: #7000ff;
+            --bg-dark: #09090b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gold: #f59e0b;
+            --silver: #94a3b8;
+            --bronze: #b45309;
+        }
+
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px; background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; padding: 2.5rem 1.5rem;
+            position: fixed; height: calc(100vh - 40px); margin: 20px;
+            border-radius: 24px; border: 1px solid var(--card-border); z-index: 100;
+        }
+        .brand { font-size: 1.6rem; font-weight: 800; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; display: flex; align-items: center; gap: 12px; }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); text-decoration: none; border-radius: 12px; font-weight: 600; transition: 0.3s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(0, 209, 255, 0.15), rgba(112, 0, 255, 0.15)); border: 1px solid rgba(0, 209, 255, 0.3); color: var(--primary); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: 300px; flex: 1; padding: 2.5rem; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+
+        /* --- IMPACT GRID --- */
+        .impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card-glass); padding: 1.5rem; border-radius: 20px; border: 1px solid var(--card-border); text-align: center; backdrop-filter: blur(10px); transition: 0.3s; }
+        .stat-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .stat-card i { font-size: 1.5rem; color: var(--primary); margin-bottom: 10px; }
+        .stat-card h3 { font-size: 2rem; font-weight: 800; margin: 5px 0; background: linear-gradient(to right, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-card p { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- CHARTS & LEADERBOARD ROW --- */
+        .analytics-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; }
+        .chart-panel, .leaderboard-panel { background: var(--card-glass); border-radius: 24px; padding: 2rem; border: 1px solid var(--card-border); backdrop-filter: blur(10px); }
+        .panel-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+
+        /* --- LEADERBOARD STYLE (TOP 3 ONLY) --- */
+        .leaderboard-podium {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .podium-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1.2rem;
+            border-radius: 16px;
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .podium-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .podium-item.rank-1::before { background: var(--gold); }
+        .podium-item.rank-2::before { background: var(--silver); }
+        .podium-item.rank-3::before { background: var(--bronze); }
+
+        .podium-item.rank-1 { background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), transparent); }
+        .podium-item.rank-2 { background: linear-gradient(90deg, rgba(148, 163, 184, 0.1), transparent); }
+        .podium-item.rank-3 { background: linear-gradient(90deg, rgba(180, 83, 9, 0.1), transparent); }
+
+        .podium-rank {
+            font-size: 2rem;
+            font-weight: 800;
+            width: 60px;
+            text-align: center;
+        }
+
+        .rank-1 .podium-rank { color: var(--gold); }
+        .rank-2 .podium-rank { color: var(--silver); }
+        .rank-3 .podium-rank { color: var(--bronze); }
+
+        .podium-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .podium-info {
+            flex: 1;
+        }
+
+        .podium-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .podium-badge {
+            font-size: 0.75rem;
+            color: var(--primary);
+            background: rgba(0, 209, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+
+        .podium-stats {
+            text-align: right;
+        }
+
+        .podium-score {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--success);
+        }
+
+        .podium-unit {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .current-user-highlight {
+            background: rgba(0, 209, 255, 0.15) !important;
+            border: 1px solid var(--primary) !important;
+        }
+
+        /* User's personal stats card */
+        .user-stats-card {
+            background: var(--card-glass);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--card-border);
+            margin-top: 1.5rem;
+        }
+
+        .user-stats-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .user-level-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .badges-grid {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge-item {
+            background: rgba(255,255,255,0.05);
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .badge-item.earned {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(0, 209, 255, 0.2));
+            border-color: var(--success);
+        }
+
+        .badge-item i { color: var(--primary); }
+        .badge-item.earned i { color: var(--success); }
+
+        /* --- ECO RANK BOX --- */
+        .eco-rank-box { 
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0, 209, 255, 0.1)); 
+            border: 1px solid var(--success); 
+            border-radius: 60px; 
+            padding: 0.8rem 1.5rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .eco-rank-box i { font-size: 1.5rem; color: var(--success); }
+        
+        .rank-info span { font-size: 0.7rem; text-transform: uppercase; color: var(--success); font-weight: 700; }
+        .rank-info p { font-weight: 800; font-size: 1.1rem; }
+
+        .footer-note {
+            margin-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 1rem;
+            border-top: 1px solid var(--card-border);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><i class="fas fa-leaf"></i> FoodVault</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fas fa-columns"></i> <span>Dashboard</span></a>
+            <a href="scan.html" class="nav-item"><i class="fas fa-barcode"></i> <span>AI Scanner</span></a>
+            <a href="analytics.html" class="nav-item active"><i class="fas fa-chart-line"></i> <span>Insights</span></a>
+            <a href="donations.html" class="nav-item"><i class="fas fa-heart"></i> <span>Donations</span></a>
+            <a href="fridge.html" class="nav-item"><i class="fas fa-snowflake"></i> <span>Smart Fridge</span></a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header-flex">
+            <div>
+                <h1>Environmental <span style="color: var(--primary)">Impact</span></h1>
+                <p style="color: var(--text-muted);">Quantifying your contribution to a zero-waste future.</p>
+            </div>
+            <div class="eco-rank-box" id="ecoRankBox">
+                <i class="fas fa-seedling"></i>
+                <div class="rank-info">
+                    <span>Your Rank</span>
+                    <p id="userRankTitle">Forest Guardian · #3</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="impact-grid">
+            <div class="stat-card">
+                <i class="fas fa-cloud"></i>
+                <h3 id="co2Val">124.5</h3>
+                <p>kg CO₂e Saved</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-tint"></i>
+                <h3 id="waterVal">8,420</h3>
+                <p>Liters Water Saved</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-utensils"></i>
+                <h3 id="mealsVal">294</h3>
+                <p>Meals Provided</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-tree"></i>
+                <h3 id="treesVal">5.6</h3>
+                <p>Trees Equivalent</p>
+            </div>
+        </div>
+
+        <div class="analytics-row">
+            <div class="chart-panel">
+                <div class="panel-title"><i class="fas fa-chart-area"></i> Impact Trend (Last 30 Days)</div>
+                <div style="height: 300px;">
+                    <canvas id="impactTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="leaderboard-panel">
+                <div class="panel-title"><i class="fas fa-trophy" style="color: var(--gold);"></i> Top 3 Eco-Warriors</div>
+                
+                <!-- Podium for Top 3 -->
+                <div class="leaderboard-podium" id="podiumContainer">
+                    <!-- Will be populated dynamically -->
+                </div>
+
+                <!-- User's Personal Stats -->
+                <div class="user-stats-card" id="userStatsCard">
+                    <div class="user-stats-header">
+                        <div class="user-avatar" style="width: 50px; height: 50px; background: var(--primary);">AS</div>
+                        <div>
+                            <h3 style="font-size: 1.1rem;">Alex Smith</h3>
+                            <span class="user-level-badge" id="userLevel">Level 4 · Forest Guardian</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: var(--text-muted);">Points to next level</span>
+                        <span id="pointsToNext">155 / 2000</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="levelProgress" style="width: 84.5%"></div>
+                    </div>
+
+                    <div class="badges-grid" id="badgesGrid">
+                        <div class="badge-item earned" id="badge1"><i class="fas fa-seedling"></i> Beginner</div>
+                        <div class="badge-item earned" id="badge2"><i class="fas fa-hand-holding-heart"></i> Donor</div>
+                        <div class="badge-item" id="badge3"><i class="fas fa-tree"></i> Tree Planter</div>
+                        <div class="badge-item earned" id="badge4"><i class="fas fa-trophy"></i> Top 10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <i class="fas fa-leaf"></i> Every kg of food saved prevents ~2.5kg CO₂ emissions · Together we're making a difference
+        </div>
+    </main>
+
+    <script>
+        // Data keys
+        const DB_KEY = 'foodvault_v4';
+        const DONATIONS_KEY = 'foodvault_donations';
+
+        // CO₂ conversion factors
+        const CO2_FACTORS = {
+            'Vegetables': 0.5, 'Fruits': 0.4, 'Dairy': 2.0,
+            'Protein': 5.0, 'Bakery': 1.2, 'default': 1.0
+        };
+
+        // Water footprint (liters per kg)
+        const WATER_FACTORS = {
+            'Vegetables': 322, 'Fruits': 962, 'Dairy': 1020,
+            'Protein': 4300, 'Bakery': 1600, 'default': 600
+        };
+
+        // Sample leaderboard data (top users)
+        let leaderboard = [
+            { name: 'Jane Doe', initials: 'JD', donations: 45, co2: 112.5, points: 2250, level: 5, badge: 'Eco Legend' },
+            { name: 'Mike K.', initials: 'MK', donations: 38, co2: 95, points: 1900, level: 4, badge: 'Forest Guardian' },
+            { name: 'Alex Smith', initials: 'AS', donations: 32, co2: 80, points: 1600, level: 4, badge: 'Forest Guardian' }
+        ];
+
+        // Current user data
+        const currentUser = {
+            name: 'Alex Smith',
+            initials: 'AS',
+            donations: 32,
+            co2: 80,
+            points: 1600,
+            level: 4,
+            badge: 'Forest Guardian',
+            rank: 3
+        };
+
+        // Calculate environmental impact
+        function calculateImpact() {
+            const { donations } = getData();
+            
+            let totalCO2 = 0;
+            let totalWater = 0;
+            let totalMeals = 0;
+
+            donations.forEach(donation => {
+                const category = donation.category || 'default';
+                const quantity = parseFloat(donation.quantity) || 0;
+                const co2Factor = CO2_FACTORS[category] || CO2_FACTORS.default;
+                const waterFactor = WATER_FACTORS[category] || WATER_FACTORS.default;
+                
+                const meals = quantity * 2;
+                totalCO2 += quantity * co2Factor;
+                totalWater += quantity * waterFactor;
+                totalMeals += meals;
+            });
+
+            const treesEquivalent = totalCO2 / 22;
+
+            return {
+                co2Saved: totalCO2.toFixed(1),
+                waterSaved: Math.round(totalWater).toLocaleString(),
+                mealsDonated: Math.round(totalMeals),
+                treesEquivalent: treesEquivalent.toFixed(1)
+            };
+        }
+
+        // Get data from localStorage
+        function getData() {
+            const inventory = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+            const donations = JSON.parse(localStorage.getItem(DONATIONS_KEY)) || [];
+            return { inventory, donations };
+        }
+
+        // Update podium with top 3
+        function updatePodium() {
+            const podiumContainer = document.getElementById('podiumContainer');
+            
+            podiumContainer.innerHTML = '';
+            
+            leaderboard.forEach((user, index) => {
+                const rank = index + 1;
+                const isCurrentUser = user.name === currentUser.name;
+                
+                const podiumItem = document.createElement('div');
+                podiumItem.className = `podium-item rank-${rank} ${isCurrentUser ? 'current-user-highlight' : ''}`;
+                
+                // Medal emojis for visual appeal
+                const medalEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                
+                podiumItem.innerHTML = `
+                    <div class="podium-rank">${medalEmoji}</div>
+                    <div class="podium-avatar">${user.initials}</div>
+                    <div class="podium-info">
+                        <div class="podium-name">${user.name} ${isCurrentUser ? '(You)' : ''}</div>
+                        <span class="podium-badge">${user.badge} · Level ${user.level}</span>
+                    </div>
+                    <div class="podium-stats">
+                        <div class="podium-score">${user.co2}</div>
+                        <span class="podium-unit">kg CO₂</span>
+                    </div>
+                `;
+                
+                podiumContainer.appendChild(podiumItem);
+            });
+        }
+
+        // Update user stats
+        function updateUserStats() {
+            const impact = calculateImpact();
+            
+            // Update impact stats
+            document.getElementById('co2Val').textContent = impact.co2Saved;
+            document.getElementById('waterVal').textContent = impact.waterSaved;
+            document.getElementById('mealsVal').textContent = impact.mealsDonated;
+            document.getElementById('treesVal').textContent = impact.treesEquivalent;
+            
+            // Update user rank info
+            document.getElementById('userRankTitle').innerHTML = `${currentUser.badge} · #${currentUser.rank}`;
+            document.getElementById('userLevel').innerHTML = `Level ${currentUser.level} · ${currentUser.badge}`;
+            
+            // Update level progress
+            const pointsToNext = (currentUser.level * 500) - currentUser.points;
+            const nextLevelTotal = currentUser.level * 500;
+            const progressPercent = ((currentUser.points % 500) / 500) * 100;
+            
+            document.getElementById('levelProgress').style.width = progressPercent + '%';
+            document.getElementById('pointsToNext').innerHTML = `${pointsToNext} / ${nextLevelTotal} points`;
+            
+            // Update badges based on achievements
+            const badges = {
+                badge1: currentUser.donations > 0,
+                badge2: currentUser.donations > 5,
+                badge3: currentUser.co2 > 50,
+                badge4: currentUser.rank <= 10
+            };
+            
+            for (let i = 1; i <= 4; i++) {
+                const badge = document.getElementById(`badge${i}`);
+                if (badges[`badge${i}`]) {
+                    badge.classList.add('earned');
+                } else {
+                    badge.classList.remove('earned');
+                }
+            }
+        }
+
+        // Initialize chart
+        const ctx = document.getElementById('impactTrendChart').getContext('2d');
+        const impactChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'CO₂ Saved (kg)',
+                    data: [12, 19, 15, 28],
+                    borderColor: '#00d1ff',
+                    backgroundColor: 'rgba(0, 209, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#00d1ff'
+                }, {
+                    label: 'Food Donated (kg)',
+                    data: [8, 12, 10, 22],
+                    borderColor: '#7000ff',
+                    borderDash: [5, 5],
+                    backgroundColor: 'rgba(112, 0, 255, 0.05)',
+                    fill: false,
+                    tension: 0.4,
+                    pointBackgroundColor: '#7000ff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        labels: { color: '#a1a1aa' } 
+                    }
+                },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#a1a1aa' }
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#a1a1aa' }
+                    }
+                }
+            }
+        });
+
+        // Initialize on page load
+        window.onload = function() {
+            updatePodium();
+            updateUserStats();
+            
+            // Update every 30 seconds
+            setInterval(() => {
+                updatePodium();
+                updateUserStats();
+            }, 30000);
+        };
+
+        // Listen for storage events
+        window.addEventListener('storage', function(e) {
+            if (e.key === DONATIONS_KEY || e.key === DB_KEY) {
+                updatePodium();
+                updateUserStats();
+            }
+        });
+    </script>
+</body>
+</html>

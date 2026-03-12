@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Pantry · expiry‑savvy recipes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background: #f4f7fb;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .recipes-container {
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    /* header */
+    .header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2.3rem;
+      font-weight: 600;
+      background: linear-gradient(145deg, #2c3e50, #1e2b38);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: #4a5b6e;
+      font-size: 1.1rem;
+      margin-top: 0.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .header p span {
+      background: #ffcf8d;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      font-weight: 500;
+      color: #3f2e1b;
+      font-size: 0.9rem;
+    }
+
+    /* soon expiry card */
+    .expiry-section {
+      background: white;
+      border-radius: 28px;
+      padding: 1.6rem 2rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.02), 0 4px 8px rgba(0,20,30,0.03);
+      margin-bottom: 2rem;
+      border: 1px solid rgba(226, 232, 240, 0.6);
+    }
+    .expiry-title {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-size: 1.2rem;
+      font-weight: 550;
+      color: #1e2a36;
+      margin-bottom: 1rem;
+    }
+    .expiry-title i {
+      font-size: 1.5rem;
+    }
+    .ingredient-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1rem;
+    }
+    .pill {
+      background: #fef2e0;
+      color: #8a5a2a;
+      padding: 0.6rem 1.4rem;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 1rem;
+      box-shadow: 0 2px 5px #ffe6c6;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #ffdbaf;
+    }
+    .pill .expiry-badge {
+      background: #d27c2c;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      letter-spacing: 0.3px;
+    }
+
+    /* main grid: recipe + shopping */
+    .recipe-shopping-grid {
+      display: grid;
+      grid-template-columns: 1fr 0.9fr;
+      gap: 1.6rem;
+    }
+
+    /* recipe card (AI suggestion) */
+    .recipe-card {
+      background: white;
+      border-radius: 28px;
+      padding: 1.8rem 1.9rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.03), 0 4px 12px rgba(0,30,40,0.04);
+      border: 1px solid rgba(200, 212, 230, 0.5);
+      transition: transform 0.1s ease;
+    }
+    .recipe-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 2px solid #ecf3fa;
+      padding-bottom: 1rem;
+      margin-bottom: 1.3rem;
+    }
+    .recipe-header h2 {
+      font-size: 1.6rem;
+      font-weight: 620;
+      color: #0f2b3f;
+    }
+    .ai-tag {
+      background: #ddeeff;
+      color: #04477c;
+      border-radius: 30px;
+      padding: 0.2rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-left: 0.5rem;
+    }
+    .recipe-image-placeholder {
+      width: 100%;
+      height: 170px;
+      background: linear-gradient(135deg, #f0f8ff, #e6f0fa);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2e577b;
+      font-weight: 400;
+      gap: 8px;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      border: 1px dashed #b5cfeb;
+    }
+    .recipe-image-placeholder i {
+      font-size: 2.2rem;
+      opacity: 0.6;
+    }
+    .recipe-desc {
+      margin-bottom: 1.8rem;
+    }
+    .recipe-desc p {
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: #1e2f3d;
+    }
+    .recipe-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 2rem;
+      background: #f7faff;
+      border-radius: 20px;
+      padding: 1rem 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2f4858;
+    }
+    .badge-icon {
+      background: #cbd5e1;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    /* shopping list card (extra needed) */
+    .shopping-card {
+      background: white;
+      border-radius: 28px;
+      padding: 1.8rem 1.9rem;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.03), 0 4px 12px rgba(0,30,40,0.04);
+      border: 1px solid rgba(200, 212, 230, 0.5);
+      display: flex;
+      flex-direction: column;
+    }
+    .shopping-title {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #103247;
+      margin-bottom: 1.5rem;
+    }
+    .shopping-title i {
+      color: #3a6d8c;
+    }
+    .extra-notice {
+      background: #ebf4fa;
+      padding: 0.7rem 1rem;
+      border-radius: 60px;
+      color: #1d5977;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .shopping-list {
+      list-style: none;
+      margin-bottom: 1.8rem;
+    }
+    .shopping-list li {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 0.5rem;
+      border-bottom: 1px solid #e2eaf1;
+      font-size: 1.1rem;
+    }
+    .shopping-list li:last-child {
+      border-bottom: none;
+    }
+    .quantity {
+      background: #ecf3fa;
+      padding: 0.3rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e425b;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .list-note {
+      background: #fafbfd;
+      border-radius: 18px;
+      padding: 0.9rem 1.2rem;
+      border-left: 4px solid #88b8d8;
+      color: #2b4d66;
+      font-size: 0.95rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    /* fallback / disclaimer */
+    .disclaimer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #6d7b8c;
+      font-size: 0.9rem;
+      border-top: 1px dashed #ccdbe9;
+      padding-top: 1.2rem;
+    }
+    .disclaimer a {
+      color: #3b6f96;
+      text-decoration: none;
+    }
+
+    /* responsiveness */
+    @media (max-width: 750px) {
+      .recipe-shopping-grid {
+        grid-template-columns: 1fr;
+      }
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="recipes-container">
+  <!-- header -->
+  <div class="header">
+    <h1>🍳 use-it-up recipes</h1>
+    <p>✨ AI suggested from ingredients expiring soon <span>2 items expiring in ≤ 3 days</span></p>
+  </div>
+
+  <!-- expiring soon ingredients (mock dynamic list) -->
+  <div class="expiry-section">
+    <div class="expiry-title">
+      <i>⏳</i> your pantry · expiring soon
+    </div>
+    <div class="ingredient-pills">
+      <div class="pill">🧀 feta cheese <span class="expiry-badge">expires tomorrow</span></div>
+      <div class="pill">🍋 lemon <span class="expiry-badge">expires in 2d</span></div>
+      <div class="pill">🌿 fresh dill <span class="expiry-badge">expires in 2d</span></div>
+      <div class="pill">🧅 red onion <span class="expiry-badge">expires in 4d</span></div>
+      <div class="pill">🫒 kalamata olives <span class="expiry-badge">expires in 5d</span></div>
+    </div>
+    <div style="margin-top: 1rem; font-size:0.9rem; color:#657c92;">📦 based on your expiry tracking · AI is scanning for the best match …</div>
+  </div>
+
+  <!-- recipe & shopping grid -->
+  <div class="recipe-shopping-grid">
+    <!-- LEFT: AI recipe suggestion card -->
+    <div class="recipe-card">
+      <div class="recipe-header">
+        <h2>Greek feta & dill fritters</h2>
+        <span class="ai-tag">AI suggested</span>
+      </div>
+      <!-- decorative image placeholder (just for vibe) -->
+      <div class="recipe-image-placeholder">
+        <i>🍽️</i> <span>feta-dill fritters with lemon</span> <i>✨</i>
+      </div>
+      <div class="recipe-desc">
+        <p>Light, crispy fritters that use your <strong>feta, dill, and lemon</strong> – all expiring very soon. Quick to mix, pan‑fried until golden. Serves 2 as main or 4 as appetizer.</p>
+      </div>
+      <div class="recipe-meta">
+        <div class="meta-item"><span class="badge-icon">⏲️</span> 22 min</div>
+        <div class="meta-item"><span class="badge-icon">🔥</span> 340 kcal</div>
+        <div class="meta-item"><span class="badge-icon">🧑‍🍳</span> easy</div>
+        <div class="meta-item"><span class="badge-icon">⭐</span> 4.8 (24)</div>
+      </div>
+      <!-- small extra note about AI reasoning -->
+      <div style="margin-top:1.2rem; background:#f1f9f0; padding:0.7rem 1.2rem; border-radius: 20px; color:#37634b; display: flex; gap:0.8rem; align-items: center;">
+        <span style="font-size:1.3rem;">🤖</span>
+        <span>AI matched <strong>feta, dill, lemon, onion</strong> from your expiring stock. Only a few basics missing → see shopping list.</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: extra needed shopping list (generated by AI) -->
+    <div class="shopping-card">
+      <div class="shopping-title">
+        <i>🛒</i> extra shopping list
+        <span style="font-size: 0.9rem; background: #d9e9f5; padding: 0.2rem 0.8rem; border-radius: 40px; margin-left: 0.5rem;">needed for recipe</span>
+      </div>
+      <div class="extra-notice">
+        <i>ℹ️</i> you already have: feta, lemon, dill, red onion, olives
+      </div>
+      <ul class="shopping-list">
+        <li>
+          <span>🌾 all-purpose flour</span>
+          <span class="quantity">1 cup</span>
+        </li>
+        <li>
+          <span>🥚 eggs</span>
+          <span class="quantity">2 large</span>
+        </li>
+        <li>
+          <span>🫙 baking powder</span>
+          <span class="quantity">1 tsp</span>
+        </li>
+        <li>
+          <span>🧂 salt & pepper</span>
+          <span class="quantity">to taste</span>
+        </li>
+        <li>
+          <span>🫒 olive oil (for frying)</span>
+          <span class="quantity">~3 tbsp</span>
+        </li>
+      </ul>
+      <div class="list-note">
+        <i>📝</i> <span><strong>optional</strong> : greek yogurt or tzatziki for serving (you have lemon & dill already!)</span>
+      </div>
+      <!-- extra micro suggestion from AI -->
+      <div style="margin-top: 1.2rem; font-size: 0.9rem; background: #eef4f9; border-radius: 40px; padding: 0.6rem 1.2rem; color: #2e577b;">
+        🤖 AI note: you can substitute flour with chickpea flour if available – even tastier.
+      </div>
+    </div>
+  </div>
+
+  <!-- second small row: optional alternative / more info (just to show that AI can adapt) -->
+  <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
+    <div style="background: white; border-radius: 22px; padding: 1rem 1.5rem; flex: 1; min-width: 200px; border:1px solid #e2e8f0;">
+      <span style="font-weight:600;">🔄 alternative recipe idea </span>
+      <span style="color:#415f73;"> if you prefer using up olives too: “mediterranean olive & feta spread” — needs bread (shopping: bread loaf).</span>
+    </div>
+    <div style="background: white; border-radius: 22px; padding: 1rem 1.5rem; flex: 1; min-width: 200px; border:1px solid #e2e8f0;">
+      <span style="font-weight:600;">🧊 expiry savers </span>
+      <span style="color:#415f73;"> freeze dill in oil, pickle red onion – AI adjusts recipes based on your habits.</span>
+    </div>
+  </div>
+
+  <!-- footer / mock timestamp -->
+  <div class="disclaimer">
+    ⚡ AI suggested recipe · expiry data simulated · always check freshness.<br>
+    <a href="#">↻ refresh for another AI suggestion</a> (based on your expiry list)
+  </div>
+</div>
+
+<!-- micro interaction note (no JS needed for static demo, but we embed an AI-style timestamp) -->
+<script>
+  (function() {
+    // just a tiny dynamic note to show "AI last updated" without changing the core functionality
+    const disclaimer = document.querySelector('.disclaimer');
+    if (disclaimer) {
+      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      const note = document.createElement('div');
+      note.style.marginTop = '0.6rem';
+      note.style.fontSize = '0.8rem';
+      note.style.color = '#8c9aa8';
+      note.innerText = `🤖 AI last scan: today at ${timeStr} · ingredients expiring soon: feta, lemon, dill, onion, olives.`;
+      disclaimer.appendChild(note);
+    }
+  })();
+</script>
+</body>
+</html>
