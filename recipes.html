@@ -1,421 +1,920 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Pantry · expiry‑savvy recipes</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    }
-    body {
-      background: #f4f7fb;
-      display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
-    .recipes-container {
-      max-width: 1100px;
-      width: 100%;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodVault | AI Recipe Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
-    /* header */
-    .header {
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-    .header h1 {
-      font-size: 2.3rem;
-      font-weight: 600;
-      background: linear-gradient(145deg, #2c3e50, #1e2b38);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.5px;
-    }
-    .header p {
-      color: #4a5b6e;
-      font-size: 1.1rem;
-      margin-top: 0.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .header p span {
-      background: #ffcf8d;
-      padding: 0.2rem 0.9rem;
-      border-radius: 40px;
-      font-weight: 500;
-      color: #3f2e1b;
-      font-size: 0.9rem;
-    }
+        :root {
+            --primary: #00d1ff;
+            --primary-glow: rgba(0, 209, 255, 0.3);
+            --accent: #7000ff;
+            --accent-glow: rgba(112, 0, 255, 0.3);
+            --bg-dark: #09090b;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --card-glass-hover: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --text-dim: #6b7280;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.3);
+            --warning: #ffb92d;
+            --warning-glow: rgba(255, 185, 45, 0.3);
+            --danger: #ff4e4e;
+            --danger-glow: rgba(255, 78, 78, 0.3);
+        }
 
-    /* soon expiry card */
-    .expiry-section {
-      background: white;
-      border-radius: 28px;
-      padding: 1.6rem 2rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.02), 0 4px 8px rgba(0,20,30,0.03);
-      margin-bottom: 2rem;
-      border: 1px solid rgba(226, 232, 240, 0.6);
-    }
-    .expiry-title {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      font-size: 1.2rem;
-      font-weight: 550;
-      color: #1e2a36;
-      margin-bottom: 1rem;
-    }
-    .expiry-title i {
-      font-size: 1.5rem;
-    }
-    .ingredient-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.8rem 1rem;
-    }
-    .pill {
-      background: #fef2e0;
-      color: #8a5a2a;
-      padding: 0.6rem 1.4rem;
-      border-radius: 60px;
-      font-weight: 500;
-      font-size: 1rem;
-      box-shadow: 0 2px 5px #ffe6c6;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid #ffdbaf;
-    }
-    .pill .expiry-badge {
-      background: #d27c2c;
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.2rem 0.7rem;
-      border-radius: 30px;
-      letter-spacing: 0.3px;
-    }
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(112, 0, 255, 0.15) 0%, transparent 35%),
+                radial-gradient(circle at 100% 100%, rgba(0, 209, 255, 0.1) 0%, transparent 35%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
 
-    /* main grid: recipe + shopping */
-    .recipe-shopping-grid {
-      display: grid;
-      grid-template-columns: 1fr 0.9fr;
-      gap: 1.6rem;
-    }
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 20, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            height: calc(100vh - 40px);
+            margin: 20px;
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            z-index: 100;
+        }
 
-    /* recipe card (AI suggestion) */
-    .recipe-card {
-      background: white;
-      border-radius: 28px;
-      padding: 1.8rem 1.9rem;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.03), 0 4px 12px rgba(0,30,40,0.04);
-      border: 1px solid rgba(200, 212, 230, 0.5);
-      transition: transform 0.1s ease;
-    }
-    .recipe-header {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      border-bottom: 2px solid #ecf3fa;
-      padding-bottom: 1rem;
-      margin-bottom: 1.3rem;
-    }
-    .recipe-header h2 {
-      font-size: 1.6rem;
-      font-weight: 620;
-      color: #0f2b3f;
-    }
-    .ai-tag {
-      background: #ddeeff;
-      color: #04477c;
-      border-radius: 30px;
-      padding: 0.2rem 1rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      margin-left: 0.5rem;
-    }
-    .recipe-image-placeholder {
-      width: 100%;
-      height: 170px;
-      background: linear-gradient(135deg, #f0f8ff, #e6f0fa);
-      border-radius: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #2e577b;
-      font-weight: 400;
-      gap: 8px;
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      border: 1px dashed #b5cfeb;
-    }
-    .recipe-image-placeholder i {
-      font-size: 2.2rem;
-      opacity: 0.6;
-    }
-    .recipe-desc {
-      margin-bottom: 1.8rem;
-    }
-    .recipe-desc p {
-      font-size: 1.1rem;
-      line-height: 1.5;
-      color: #1e2f3d;
-    }
-    .recipe-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem 2rem;
-      background: #f7faff;
-      border-radius: 20px;
-      padding: 1rem 1.5rem;
-      margin-top: 0.5rem;
-    }
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: #2f4858;
-    }
-    .badge-icon {
-      background: #cbd5e1;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-    }
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    /* shopping list card (extra needed) */
-    .shopping-card {
-      background: white;
-      border-radius: 28px;
-      padding: 1.8rem 1.9rem;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.03), 0 4px 12px rgba(0,30,40,0.04);
-      border: 1px solid rgba(200, 212, 230, 0.5);
-      display: flex;
-      flex-direction: column;
-    }
-    .shopping-title {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #103247;
-      margin-bottom: 1.5rem;
-    }
-    .shopping-title i {
-      color: #3a6d8c;
-    }
-    .extra-notice {
-      background: #ebf4fa;
-      padding: 0.7rem 1rem;
-      border-radius: 60px;
-      color: #1d5977;
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin-bottom: 1.6rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .shopping-list {
-      list-style: none;
-      margin-bottom: 1.8rem;
-    }
-    .shopping-list li {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 0.9rem 0.5rem;
-      border-bottom: 1px solid #e2eaf1;
-      font-size: 1.1rem;
-    }
-    .shopping-list li:last-child {
-      border-bottom: none;
-    }
-    .quantity {
-      background: #ecf3fa;
-      padding: 0.3rem 0.8rem;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #1e425b;
-      margin-left: auto;
-      white-space: nowrap;
-    }
-    .list-note {
-      background: #fafbfd;
-      border-radius: 18px;
-      padding: 0.9rem 1.2rem;
-      border-left: 4px solid #88b8d8;
-      color: #2b4d66;
-      font-size: 0.95rem;
-      display: flex;
-      gap: 0.8rem;
-      align-items: center;
-    }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
 
-    /* fallback / disclaimer */
-    .disclaimer {
-      margin-top: 2rem;
-      text-align: center;
-      color: #6d7b8c;
-      font-size: 0.9rem;
-      border-top: 1px dashed #ccdbe9;
-      padding-top: 1.2rem;
-    }
-    .disclaimer a {
-      color: #3b6f96;
-      text-decoration: none;
-    }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    /* responsiveness */
-    @media (max-width: 750px) {
-      .recipe-shopping-grid {
-        grid-template-columns: 1fr;
-      }
-      .header h1 { font-size: 1.8rem; }
-    }
-  </style>
+        .nav-item:hover {
+            background: var(--card-glass);
+            color: var(--text-main);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(0, 209, 255, 0.1), rgba(112, 0, 255, 0.1));
+            border: 1px solid var(--primary-glow);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 2.5rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        /* Expiring Ingredients Section */
+        .expiring-section {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--warning);
+        }
+
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .ingredient-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 40px;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .ingredient-chip:hover {
+            border-color: var(--warning);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--warning-glow);
+        }
+
+        .ingredient-chip.warning {
+            border-color: var(--warning);
+            background: var(--warning-glow);
+        }
+
+        .ingredient-icon {
+            font-size: 1.2rem;
+        }
+
+        .ingredient-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .expiry-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            background: var(--warning-glow);
+            color: var(--warning);
+        }
+
+        /* AI Recipe Suggestions */
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .recipe-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 2rem;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recipe-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 30px -10px var(--primary-glow);
+        }
+
+        .recipe-card:hover::before {
+            opacity: 1;
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .recipe-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .match-badge {
+            background: var(--success-glow);
+            color: var(--success);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 180px;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
+        }
+
+        .ingredients-list {
+            margin: 1.5rem 0;
+        }
+
+        .ingredient-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .ingredient-row.have {
+            color: var(--success);
+        }
+
+        .ingredient-row.have i {
+            color: var(--success);
+        }
+
+        .ingredient-row.need {
+            color: var(--text-muted);
+        }
+
+        .ingredient-row.need i {
+            color: var(--warning);
+        }
+
+        .check-icon {
+            width: 20px;
+        }
+
+        .instructions {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+        }
+
+        .recipe-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-recipe {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px var(--primary-glow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Shopping List Section */
+        .shopping-section {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .shopping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .shopping-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .shopping-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            transition: 0.3s;
+        }
+
+        .shopping-item:hover {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .shopping-item i {
+            color: var(--warning);
+            font-size: 1.2rem;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .item-quantity {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .add-to-cart {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .add-to-cart:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+        }
+
+        /* Loading Animation */
+        .ai-thinking {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: var(--card-glass);
+            border-radius: 60px;
+            margin: 2rem 0;
+        }
+
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px; 
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; padding: 2rem 1rem; }
+            .sidebar span, .brand span { display: none; }
+            .main-content { margin-left: 120px; }
+            .recipes-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-<div class="recipes-container">
-  <!-- header -->
-  <div class="header">
-    <h1>🍳 use-it-up recipes</h1>
-    <p>✨ AI suggested from ingredients expiring soon <span>2 items expiring in ≤ 3 days</span></p>
-  </div>
+    <aside class="sidebar">
+        <div class="brand"><i class="fas fa-robot"></i> <span>FoodVault</span></div>
+        <nav class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fas fa-home"></i> <span>Dashboard</span></a>
+            <a href="scan.html" class="nav-item"><i class="fas fa-camera"></i> <span>AI Scanner</span></a>
+            <a href="recipes.html" class="nav-item active"><i class="fas fa-utensils"></i> <span>Recipes</span></a>
+            <a href="donations.html" class="nav-item"><i class="fas fa-heart"></i> <span>Donations</span></a>
+            <a href="analytics.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Insights</span></a>
+            <a href="fridge.html" class="nav-item"><i class="fas fa-snowflake"></i> <span>Smart Fridge</span></a>
+        </nav>
+    </aside>
 
-  <!-- expiring soon ingredients (mock dynamic list) -->
-  <div class="expiry-section">
-    <div class="expiry-title">
-      <i>⏳</i> your pantry · expiring soon
-    </div>
-    <div class="ingredient-pills">
-      <div class="pill">🧀 feta cheese <span class="expiry-badge">expires tomorrow</span></div>
-      <div class="pill">🍋 lemon <span class="expiry-badge">expires in 2d</span></div>
-      <div class="pill">🌿 fresh dill <span class="expiry-badge">expires in 2d</span></div>
-      <div class="pill">🧅 red onion <span class="expiry-badge">expires in 4d</span></div>
-      <div class="pill">🫒 kalamata olives <span class="expiry-badge">expires in 5d</span></div>
-    </div>
-    <div style="margin-top: 1rem; font-size:0.9rem; color:#657c92;">📦 based on your expiry tracking · AI is scanning for the best match …</div>
-  </div>
+    <main class="main-content">
+        <div class="header">
+            <div>
+                <h1>AI Recipe Assistant</h1>
+                <p>Smart suggestions based on your expiring ingredients</p>
+            </div>
+            <div class="ai-badge">
+                <i class="fas fa-brain"></i> 
+                <span>AI Powered</span>
+            </div>
+        </div>
 
-  <!-- recipe & shopping grid -->
-  <div class="recipe-shopping-grid">
-    <!-- LEFT: AI recipe suggestion card -->
-    <div class="recipe-card">
-      <div class="recipe-header">
-        <h2>Greek feta & dill fritters</h2>
-        <span class="ai-tag">AI suggested</span>
-      </div>
-      <!-- decorative image placeholder (just for vibe) -->
-      <div class="recipe-image-placeholder">
-        <i>🍽️</i> <span>feta-dill fritters with lemon</span> <i>✨</i>
-      </div>
-      <div class="recipe-desc">
-        <p>Light, crispy fritters that use your <strong>feta, dill, and lemon</strong> – all expiring very soon. Quick to mix, pan‑fried until golden. Serves 2 as main or 4 as appetizer.</p>
-      </div>
-      <div class="recipe-meta">
-        <div class="meta-item"><span class="badge-icon">⏲️</span> 22 min</div>
-        <div class="meta-item"><span class="badge-icon">🔥</span> 340 kcal</div>
-        <div class="meta-item"><span class="badge-icon">🧑‍🍳</span> easy</div>
-        <div class="meta-item"><span class="badge-icon">⭐</span> 4.8 (24)</div>
-      </div>
-      <!-- small extra note about AI reasoning -->
-      <div style="margin-top:1.2rem; background:#f1f9f0; padding:0.7rem 1.2rem; border-radius: 20px; color:#37634b; display: flex; gap:0.8rem; align-items: center;">
-        <span style="font-size:1.3rem;">🤖</span>
-        <span>AI matched <strong>feta, dill, lemon, onion</strong> from your expiring stock. Only a few basics missing → see shopping list.</span>
-      </div>
-    </div>
+        <!-- Expiring Ingredients Section -->
+        <div class="expiring-section" id="expiringSection">
+            <div class="section-title">
+                <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+                <h2>Ingredients Expiring Soon</h2>
+            </div>
+            <div class="ingredients-grid" id="expiringIngredients">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
 
-    <!-- RIGHT: extra needed shopping list (generated by AI) -->
-    <div class="shopping-card">
-      <div class="shopping-title">
-        <i>🛒</i> extra shopping list
-        <span style="font-size: 0.9rem; background: #d9e9f5; padding: 0.2rem 0.8rem; border-radius: 40px; margin-left: 0.5rem;">needed for recipe</span>
-      </div>
-      <div class="extra-notice">
-        <i>ℹ️</i> you already have: feta, lemon, dill, red onion, olives
-      </div>
-      <ul class="shopping-list">
-        <li>
-          <span>🌾 all-purpose flour</span>
-          <span class="quantity">1 cup</span>
-        </li>
-        <li>
-          <span>🥚 eggs</span>
-          <span class="quantity">2 large</span>
-        </li>
-        <li>
-          <span>🫙 baking powder</span>
-          <span class="quantity">1 tsp</span>
-        </li>
-        <li>
-          <span>🧂 salt & pepper</span>
-          <span class="quantity">to taste</span>
-        </li>
-        <li>
-          <span>🫒 olive oil (for frying)</span>
-          <span class="quantity">~3 tbsp</span>
-        </li>
-      </ul>
-      <div class="list-note">
-        <i>📝</i> <span><strong>optional</strong> : greek yogurt or tzatziki for serving (you have lemon & dill already!)</span>
-      </div>
-      <!-- extra micro suggestion from AI -->
-      <div style="margin-top: 1.2rem; font-size: 0.9rem; background: #eef4f9; border-radius: 40px; padding: 0.6rem 1.2rem; color: #2e577b;">
-        🤖 AI note: you can substitute flour with chickpea flour if available – even tastier.
-      </div>
-    </div>
-  </div>
+        <!-- AI Thinking Animation (shown while generating) -->
+        <div class="ai-thinking" id="aiThinking" style="display: none;">
+            <div class="pulse-dot"></div>
+            <div class="pulse-dot" style="animation-delay: 0.3s;"></div>
+            <div class="pulse-dot" style="animation-delay: 0.6s;"></div>
+            <span style="color: var(--text-muted);">AI is analyzing your ingredients and generating recipes...</span>
+        </div>
 
-  <!-- second small row: optional alternative / more info (just to show that AI can adapt) -->
-  <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
-    <div style="background: white; border-radius: 22px; padding: 1rem 1.5rem; flex: 1; min-width: 200px; border:1px solid #e2e8f0;">
-      <span style="font-weight:600;">🔄 alternative recipe idea </span>
-      <span style="color:#415f73;"> if you prefer using up olives too: “mediterranean olive & feta spread” — needs bread (shopping: bread loaf).</span>
-    </div>
-    <div style="background: white; border-radius: 22px; padding: 1rem 1.5rem; flex: 1; min-width: 200px; border:1px solid #e2e8f0;">
-      <span style="font-weight:600;">🧊 expiry savers </span>
-      <span style="color:#415f73;"> freeze dill in oil, pickle red onion – AI adjusts recipes based on your habits.</span>
-    </div>
-  </div>
+        <!-- Recipe Suggestions -->
+        <div class="recipes-grid" id="recipesGrid">
+            <!-- Recipe cards will be inserted here -->
+        </div>
 
-  <!-- footer / mock timestamp -->
-  <div class="disclaimer">
-    ⚡ AI suggested recipe · expiry data simulated · always check freshness.<br>
-    <a href="#">↻ refresh for another AI suggestion</a> (based on your expiry list)
-  </div>
-</div>
+        <!-- Shopping List Section -->
+        <div class="shopping-section" id="shoppingSection" style="display: none;">
+            <div class="shopping-header">
+                <h2><i class="fas fa-shopping-cart" style="color: var(--primary);"></i> Shopping List</h2>
+                <button class="btn-outline" style="padding: 0.5rem 1.5rem;" onclick="exportShoppingList()">
+                    <i class="fas fa-download"></i> Export List
+                </button>
+            </div>
+            <div class="shopping-list" id="shoppingList">
+                <!-- Shopping items will be inserted here -->
+            </div>
+        </div>
+    </main>
 
-<!-- micro interaction note (no JS needed for static demo, but we embed an AI-style timestamp) -->
-<script>
-  (function() {
-    // just a tiny dynamic note to show "AI last updated" without changing the core functionality
-    const disclaimer = document.querySelector('.disclaimer');
-    if (disclaimer) {
-      const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-      const note = document.createElement('div');
-      note.style.marginTop = '0.6rem';
-      note.style.fontSize = '0.8rem';
-      note.style.color = '#8c9aa8';
-      note.innerText = `🤖 AI last scan: today at ${timeStr} · ingredients expiring soon: feta, lemon, dill, onion, olives.`;
-      disclaimer.appendChild(note);
-    }
-  })();
-</script>
+    <script>
+        const DB_KEY = 'foodvault_pro_v5';
+        let inventory = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+
+        // Recipe database with ingredients and instructions
+        const recipeDatabase = [
+            {
+                name: "Vegetable Stir Fry",
+                image: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Carrots", category: "Vegetables" },
+                    { name: "Broccoli", category: "Vegetables" },
+                    { name: "Bell Peppers", category: "Vegetables" },
+                    { name: "Onions", category: "Vegetables" },
+                    { name: "Soy Sauce", category: "Condiments" },
+                    { name: "Garlic", category: "Vegetables" },
+                    { name: "Ginger", category: "Spices" }
+                ],
+                instructions: "1. Chop all vegetables into bite-sized pieces. 2. Heat oil in a wok. 3. Add garlic and ginger, stir for 30 seconds. 4. Add vegetables and stir-fry for 5-7 minutes. 5. Add soy sauce and cook for 2 more minutes. Serve hot.",
+                prepTime: "15 mins",
+                cookTime: "10 mins",
+                difficulty: "Easy"
+            },
+            {
+                name: "Creamy Pasta Primavera",
+                image: "https://images.unsplash.com/photo-1645112411342-4665c1b8f2c3?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Pasta", category: "Grains" },
+                    { name: "Heavy Cream", category: "Dairy" },
+                    { name: "Parmesan", category: "Dairy" },
+                    { name: "Zucchini", category: "Vegetables" },
+                    { name: "Cherry Tomatoes", category: "Fruits" },
+                    { name: "Garlic", category: "Vegetables" },
+                    { name: "Basil", category: "Herbs" }
+                ],
+                instructions: "1. Cook pasta according to package. 2. Sauté garlic and vegetables. 3. Add cream and Parmesan. 4. Combine with pasta. 5. Garnish with fresh basil.",
+                prepTime: "10 mins",
+                cookTime: "15 mins",
+                difficulty: "Medium"
+            },
+            {
+                name: "Greek Salad",
+                image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Cucumber", category: "Vegetables" },
+                    { name: "Tomatoes", category: "Fruits" },
+                    { name: "Red Onion", category: "Vegetables" },
+                    { name: "Feta Cheese", category: "Dairy" },
+                    { name: "Olives", category: "Other" },
+                    { name: "Olive Oil", category: "Oils" },
+                    { name: "Oregano", category: "Spices" }
+                ],
+                instructions: "1. Chop vegetables. 2. Combine in bowl. 3. Add feta and olives. 4. Dress with olive oil and oregano. 5. Toss and serve.",
+                prepTime: "10 mins",
+                cookTime: "0 mins",
+                difficulty: "Easy"
+            },
+            {
+                name: "Apple Cinnamon Oatmeal",
+                image: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Oats", category: "Grains" },
+                    { name: "Apples", category: "Fruits" },
+                    { name: "Milk", category: "Dairy" },
+                    { name: "Cinnamon", category: "Spices" },
+                    { name: "Honey", category: "Sweeteners" },
+                    { name: "Walnuts", category: "Nuts" }
+                ],
+                instructions: "1. Cook oats with milk. 2. Dice apples. 3. Combine with cinnamon. 4. Top with honey and walnuts.",
+                prepTime: "5 mins",
+                cookTime: "10 mins",
+                difficulty: "Easy"
+            },
+            {
+                name: "Chicken & Vegetable Soup",
+                image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Chicken", category: "Protein" },
+                    { name: "Carrots", category: "Vegetables" },
+                    { name: "Celery", category: "Vegetables" },
+                    { name: "Onions", category: "Vegetables" },
+                    { name: "Garlic", category: "Vegetables" },
+                    { name: "Chicken Broth", category: "Other" },
+                    { name: "Herbs", category: "Spices" }
+                ],
+                instructions: "1. Sauté vegetables. 2. Add chicken and broth. 3. Simmer for 30 minutes. 4. Season with herbs.",
+                prepTime: "15 mins",
+                cookTime: "40 mins",
+                difficulty: "Medium"
+            },
+            {
+                name: "Fruit Smoothie Bowl",
+                image: "https://images.unsplash.com/photo-1490324160354-bf679ae7a1c3?w=600&h=400&fit=crop",
+                ingredients: [
+                    { name: "Bananas", category: "Fruits" },
+                    { name: "Berries", category: "Fruits" },
+                    { name: "Yogurt", category: "Dairy" },
+                    { name: "Milk", category: "Dairy" },
+                    { name: "Honey", category: "Sweeteners" },
+                    { name: "Granola", category: "Grains" }
+                ],
+                instructions: "1. Blend fruits with yogurt and milk. 2. Pour into bowl. 3. Top with granola and fresh fruit.",
+                prepTime: "10 mins",
+                cookTime: "0 mins",
+                difficulty: "Easy"
+            }
+        ];
+
+        // Find expiring ingredients (within 3 days)
+        function getExpiringIngredients() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            return inventory.filter(item => {
+                if (item.donated) return false;
+                const expDate = new Date(item.exp);
+                const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                return diffDays <= 3 && diffDays >= 0;
+            });
+        }
+
+        // Display expiring ingredients
+        function displayExpiringIngredients() {
+            const expiring = getExpiringIngredients();
+            const container = document.getElementById('expiringIngredients');
+            
+            if (expiring.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <i class="fas fa-smile" style="font-size: 3rem; margin-bottom: 1rem; color: var(--success);"></i>
+                        <p>No ingredients expiring soon! Your pantry is fresh.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = expiring.map(item => `
+                <div class="ingredient-chip warning">
+                    <span class="ingredient-icon">${getIngredientIcon(item.cat)}</span>
+                    <span class="ingredient-name">${item.name}</span>
+                    <span class="expiry-badge">${getDaysUntilExpiry(item.exp)}d</span>
+                </div>
+            `).join('');
+        }
+
+        // Get icon for category
+        function getIngredientIcon(category) {
+            const icons = {
+                'Vegetables': '🥦',
+                'Fruits': '🍎',
+                'Dairy': '🥛',
+                'Protein': '🥩',
+                'Bakery': '🍞',
+                'Grains': '🌾',
+                'Spices': '🧂',
+                'Condiments': '🫙',
+                'default': '📦'
+            };
+            return icons[category] || icons.default;
+        }
+
+        // Calculate days until expiry
+        function getDaysUntilExpiry(expDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const exp = new Date(expDate);
+            return Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+        }
+
+        // AI Recipe Matching
+        function findMatchingRecipes() {
+            const expiring = getExpiringIngredients();
+            const expiringNames = expiring.map(item => item.name.toLowerCase());
+            const expiringCategories = expiring.map(item => item.cat);
+
+            // Score each recipe based on matching ingredients
+            const scoredRecipes = recipeDatabase.map(recipe => {
+                let matchCount = 0;
+                let totalIngredients = recipe.ingredients.length;
+                let missingIngredients = [];
+
+                recipe.ingredients.forEach(ingredient => {
+                    // Check if ingredient is in inventory and not expired
+                    const inInventory = inventory.some(item => 
+                        item.name.toLowerCase().includes(ingredient.name.toLowerCase()) && 
+                        !item.donated &&
+                        getDaysUntilExpiry(item.exp) > 0
+                    );
+
+                    if (inInventory) {
+                        matchCount++;
+                    } else {
+                        missingIngredients.push(ingredient);
+                    }
+                });
+
+                const matchPercentage = Math.round((matchCount / totalIngredients) * 100);
+                
+                return {
+                    ...recipe,
+                    matchPercentage,
+                    matchCount,
+                    totalIngredients,
+                    missingIngredients
+                };
+            });
+
+            // Filter recipes with at least one matching ingredient and sort by match percentage
+            return scoredRecipes
+                .filter(recipe => recipe.matchCount > 0)
+                .sort((a, b) => b.matchPercentage - a.matchPercentage)
+                .slice(0, 4); // Show top 4 recipes
+        }
+
+        // Display recipes
+        function displayRecipes() {
+            const recipes = findMatchingRecipes();
+            const grid = document.getElementById('recipesGrid');
+            const shoppingSection = document.getElementById('shoppingSection');
+            
+            if (recipes.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; background: var(--card-glass); border-radius: 32px;">
+                        <i class="fas fa-robot" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem;">No Recipe Matches Yet</h3>
+                        <p style="color: var(--text-muted);">Add more ingredients to your pantry for AI recipe suggestions.</p>
+                    </div>
+                `;
+                shoppingSection.style.display = 'none';
+                return;
+            }
+
+            grid.innerHTML = recipes.map(recipe => {
+                const haveIngredients = recipe.ingredients.filter(ing => 
+                    inventory.some(item => 
+                        item.name.toLowerCase().includes(ing.name.toLowerCase()) && 
+                        !item.donated &&
+                        getDaysUntilExpiry(item.exp) > 0
+                    )
+                );
+
+                return `
+                    <div class="recipe-card">
+                        <div class="recipe-header">
+                            <h3 class="recipe-title">${recipe.name}</h3>
+                            <span class="match-badge">${recipe.matchPercentage}% Match</span>
+                        </div>
+                        <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image">
+                        <div class="ingredients-list">
+                            ${recipe.ingredients.map(ing => {
+                                const have = haveIngredients.some(h => h.name === ing.name);
+                                return `
+                                    <div class="ingredient-row ${have ? 'have' : 'need'}">
+                                        <i class="fas ${have ? 'fa-check-circle' : 'fa-exclamation-circle'} check-icon"></i>
+                                        <span>${ing.name}</span>
+                                        ${!have ? '<span style="margin-left: auto; font-size: 0.7rem; color: var(--warning);">missing</span>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="instructions">
+                            <i class="fas fa-clock" style="color: var(--primary);"></i> ${recipe.prepTime} prep · ${recipe.cookTime} cook · ${recipe.difficulty}
+                        </div>
+                        <div class="recipe-footer">
+                            <button class="btn-recipe btn-primary" onclick="viewRecipe('${recipe.name}')">
+                                <i class="fas fa-eye"></i> View Recipe
+                            </button>
+                            <button class="btn-recipe btn-outline" onclick="generateShoppingList('${recipe.name}')">
+                                <i class="fas fa-shopping-cart"></i> Get List
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Show shopping section if there are recipes
+            if (recipes.length > 0) {
+                generateShoppingList(recipes[0].name); // Show shopping list for first recipe
+            }
+        }
+
+        // Generate shopping list for a recipe
+        function generateShoppingList(recipeName) {
+            const recipe = recipeDatabase.find(r => r.name === recipeName);
+            if (!recipe) return;
+
+            const missingIngredients = recipe.ingredients.filter(ing => 
+                !inventory.some(item => 
+                    item.name.toLowerCase().includes(ing.name.toLowerCase()) && 
+                    !item.donated &&
+                    getDaysUntilExpiry(item.exp) > 0
+                )
+            );
+
+            const shoppingSection = document.getElementById('shoppingSection');
+            const shoppingList = document.getElementById('shoppingList');
+
+            if (missingIngredients.length === 0) {
+                shoppingList.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+                        <p>You have all ingredients for ${recipeName}!</p>
+                    </div>
+                `;
+            } else {
+                shoppingList.innerHTML = missingIngredients.map(ing => `
+                    <div class="shopping-item">
+                        <i class="fas ${getIngredientIcon(ing.category)}"></i>
+                        <div class="item-details">
+                            <div class="item-name">${ing.name}</div>
+                            <div class="item-quantity">1 unit · ${ing.category}</div>
+                        </div>
+                        <button class="add-to-cart" onclick="addToShoppingList('${ing.name}')">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            shoppingSection.style.display = 'block';
+        }
+
+        // Add item to shopping list (could be extended to save to localStorage)
+        function addToShoppingList(itemName) {
+            alert(`✅ ${itemName} added to your shopping list!`);
+        }
+
+        // Export shopping list
+        function exportShoppingList() {
+            const shoppingItems = document.querySelectorAll('.shopping-item .item-name');
+            if (shoppingItems.length === 0) {
+                alert('Shopping list is empty!');
+                return;
+            }
+
+            let list = 'Shopping List for FoodVault Recipes:\n\n';
+            shoppingItems.forEach(item => {
+                list += `• ${item.textContent}\n`;
+            });
+
+            // Create and download file
+            const blob = new Blob([list], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'foodvault-shopping-list.txt';
+            a.click();
+        }
+
+        // View full recipe (could open modal)
+        function viewRecipe(recipeName) {
+            alert(`Opening full recipe for ${recipeName}...\n\nCheck the shopping list for missing ingredients!`);
+        }
+
+        // Simulate AI thinking
+        function simulateAIThinking() {
+            const aiThinking = document.getElementById('aiThinking');
+            aiThinking.style.display = 'flex';
+            
+            setTimeout(() => {
+                aiThinking.style.display = 'none';
+                displayRecipes();
+            }, 2000);
+        }
+
+        // Initialize page
+        function init() {
+            displayExpiringIngredients();
+            simulateAIThinking();
+        }
+
+        // Listen for inventory updates
+        window.addEventListener('storage', (e) => {
+            if (e.key === DB_KEY) {
+                inventory = JSON.parse(e.newValue) || [];
+                init();
+            }
+        });
+
+        // Initial load
+        init();
+    </script>
 </body>
 </html>
